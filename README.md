@@ -1,4 +1,4 @@
-﻿# Automotive Cybersecurity Compliance AI Assistant
+﻿# Automotive Cybersecurity & Compliance AI Assistant
 
 An AI-powered platform for automotive cybersecurity incident analysis, threat classification, and regulatory compliance management. Built for security engineers working within ISO/SAE 21434 and UNECE R155/R156 frameworks.
 
