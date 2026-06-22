@@ -8,9 +8,9 @@ The platform stores structured incident, vehicle asset, risk, evidence, mitigati
 
 Three decoupled layers:
 
-1. **Database access layer** (`db.py`) — all queries isolated from UI logic; single source of truth
-2. **AI analyst module** (`ai.py`) — calls the Anthropic API using only database-resident evidence; no hallucinated context
-3. **Analyst dashboard** (`app.py`) — Streamlit UI with incident explorer, compliance overview, and on-demand AI brief generation
+1. **Database access layer** (`db.py`): all queries isolated from UI logic; single source of truth
+2. **AI analyst module** (`ai.py`): calls the Anthropic API using only database-resident evidence; no hallucinated context
+3. **Analyst dashboard** (`app.py`): Streamlit UI with incident explorer, compliance overview, and on-demand AI brief generation
 
 ## Project Structure
 
@@ -60,7 +60,7 @@ Edit `.env`:
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-`.env` is excluded from version control via `.gitignore`.
+The `.env` file is excluded from version control via `.gitignore`.
 
 ## Database Initialization
 
@@ -105,15 +105,15 @@ Dashboard available at `http://localhost:8501`
 
 | Function | Returns |
 |---|---|
-| `get_ai_context_for_incident(incident_id)` | Dict of DataFrames: incident detail, associated controls, evidence records, and mitigation actions — the only data passed to the AI model |
+| `get_ai_context_for_incident(incident_id)` | Dict of DataFrames: incident detail, associated controls, evidence records, and mitigation actions. This is the only data passed to the AI model. |
 
 ## AI Module (`ai.py`)
 
 | Function | Purpose |
 |---|---|
 | `format_incident_evidence(context)` | Serializes `get_ai_context_for_incident()` output to labeled plain text |
-| `build_analyst_prompt(evidence_text)` | Wraps evidence in hard delimiters to prevent prompt injection; prepends system prompt |
-| `generate_incident_summary(context)` | Calls Claude Haiku via Anthropic API; returns structured analyst brief |
+| `build_analyst_prompt(evidence_text)` | Wraps evidence in hard delimiters to prevent prompt injection and prepends the system prompt |
+| `generate_incident_summary(context)` | Calls Claude Haiku via Anthropic API and returns a structured analyst brief |
 
 The AI model operates exclusively on database-retrieved evidence. No external context is injected.
 
