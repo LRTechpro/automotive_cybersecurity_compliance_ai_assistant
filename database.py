@@ -4,9 +4,11 @@ import hashlib
 import json
 import sqlite3
 import re
+import shutil
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "data" / "autocyber.db"
@@ -28,11 +30,15 @@ SEED_TABLES = BASE_TABLES + [
 ]
 
 
-def connection() -> sqlite3.Connection:
+@contextmanager
+def connection() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def _hash_file(path: Path) -> str:
@@ -52,14 +58,42 @@ def _insert_many(conn: sqlite3.Connection, table: str, records: list[dict[str, A
     conn.executemany(sql, [tuple(record.get(col) for col in columns) for record in records])
 
 
+def _clear_ingested_artifacts() -> None:
+    INGEST_DIR.mkdir(parents=True, exist_ok=True)
+    for item in INGEST_DIR.iterdir():
+        try:
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+        except OSError as exc:
+            raise RuntimeError(f"Unable to remove local ingested artifact '{item}': {exc}") from exc
+
+
+def _reset_schema(conn: sqlite3.Connection) -> None:
+    conn.execute("PRAGMA foreign_keys = OFF")
+    objects = conn.execute("""
+        SELECT type, name FROM sqlite_master
+        WHERE type IN ('view','trigger','table')
+          AND name NOT LIKE 'sqlite_%'
+        ORDER BY CASE type WHEN 'view' THEN 1 WHEN 'trigger' THEN 2 ELSE 3 END
+    """).fetchall()
+    for item in objects:
+        name = str(item["name"]).replace('"', '""')
+        conn.execute(f'DROP {item["type"].upper()} IF EXISTS "{name}"')
+    conn.execute("PRAGMA foreign_keys = ON")
+
+
 def initialize_database(reset: bool = False) -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     INGEST_DIR.mkdir(parents=True, exist_ok=True)
-    if reset and DB_PATH.exists():
-        DB_PATH.unlink()
+    if reset:
+        _clear_ingested_artifacts()
 
     with connection() as conn:
+        if reset:
+            _reset_schema(conn)
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         seed = json.loads(SEED_PATH.read_text(encoding="utf-8"))
         for table in SEED_TABLES:

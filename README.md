@@ -92,6 +92,8 @@ chmod +x run_mac_linux.sh
 python server.py --reset
 ```
 
+Reset rebuilds the local SQLite demonstration database and clears user-generated files in `data/ingested`. Seeded evidence files in `data/evidence` are preserved.
+
 ## Recommended learning order
 
 1. Assurance dashboard
@@ -143,6 +145,7 @@ Only selected local assessment context is sent to the locally hosted Ollama endp
 python -m py_compile server.py database.py advisor.py
 node --check static/app.js
 python tests/test_smoke.py
+python tests/test_reset.py
 ```
 
 ## Interview positioning

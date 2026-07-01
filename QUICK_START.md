@@ -12,6 +12,8 @@ Run `run_windows.bat` or:
 python server.py --reset
 ```
 
+Reset rebuilds the seeded v3 database, removes locally ingested artifacts from `data/ingested`, and preserves the seeded evidence pack under `data/evidence`.
+
 Open `http://127.0.0.1:8765` and leave **Guided learning** enabled.
 
 ## 2. Compare the release
