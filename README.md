@@ -62,9 +62,10 @@ The GWM denies the requests and creates a local event. Centralized fleet alertin
 ### Windows
 
 1. Install Python 3.11 or newer.
-2. Download or clone this repository.
+2. Clone or download the repository.
 3. Double-click `run_windows.bat`.
-4. Open `http://127.0.0.1:8765` if the browser does not open automatically.
+4. On the first run, the launcher reconstructs the checksum-verified v2 source ZIP, extracts it, and starts the application.
+5. Open `http://127.0.0.1:8765` if the browser does not open automatically.
 
 ### macOS or Linux
 
@@ -73,13 +74,34 @@ chmod +x run_mac_linux.sh
 ./run_mac_linux.sh
 ```
 
+The launcher performs the same reconstruction and extraction on its first run.
+
+### Manual reconstruction
+
+```bash
+python assemble_v2_release.py
+python -m zipfile -e AutoCyber_Traceability_Workbench_v2.0_source.zip .
+cd AutoCyber_Traceability_Workbench
+python server.py
+```
+
+The assembly script verifies this SHA-256 value before accepting the reconstructed source package:
+
+```text
+73ac09951150f5751f9385190312815a8cc53366496900218e3d45d874d5abc3
+```
+
 ### Reset the synthetic demonstration data
+
+Use `run_windows_reset_demo.bat`, or from the extracted application directory run:
 
 ```bash
 python server.py --reset
 ```
 
 ## Tests
+
+First reconstruct and extract the application. Then run these commands inside `AutoCyber_Traceability_Workbench`:
 
 ```bash
 python tests/test_smoke.py
@@ -96,25 +118,26 @@ $env:OLLAMA_MODEL="llama3.1:8b"
 python server.py
 ```
 
-The tool sends only the selected local assessment context to the locally hosted Ollama endpoint.
+Only the selected assessment context is sent to the locally hosted Ollama endpoint.
 
-## Project structure
+## Repository structure
 
 ```text
-AutoCyber_Traceability_Workbench/
-├── server.py
+├── README.md
+├── assemble_v2_release.py
+├── release_parts/               # Checksum-verified source archive parts
+├── run_windows.bat              # Reconstructs, extracts, and launches
+├── run_windows_reset_demo.bat
+├── run_mac_linux.sh
+├── server.py                    # Readable backend source for review
 ├── database.py
 ├── advisor.py
 ├── schema.sql
-├── seed_data.json
-├── templates/index.html
-├── static/app.js
-├── static/styles.css
-├── data/evidence/
 ├── docs/
-├── tests/test_smoke.py
-└── run_windows.bat
+└── tests/
 ```
+
+The reconstructed application includes the complete frontend, seed data, evidence pack, backend, documentation, and tests.
 
 ## Interview positioning
 
