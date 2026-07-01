@@ -1,136 +1,141 @@
-﻿# Automotive Cybersecurity & Compliance AI Assistant
+# AutoCyber Traceability & Assurance Workbench
 
-An AI-powered platform for automotive cybersecurity incident analysis, threat classification, and regulatory compliance management. Built for security engineers working within ISO/SAE 21434 and UNECE R155/R156 frameworks.
+A local, portfolio-grade proof of concept for automotive cybersecurity engineering and compliance-assurance work. The application is intentionally limited to a **synthetic APIM, GWM, and TCU architecture** and demonstrates how an engineer connects:
 
-The platform stores structured incident, vehicle asset, risk, evidence, mitigation, and compliance-control data in a local SQLite database, exposes it through a modular Python access layer, and surfaces it through a Streamlit analyst dashboard with integrated AI-generated incident briefs grounded in database evidence.
+- vehicle architecture and trust boundaries;
+- STRIDE threat categorization and applicable MITRE ATT&CK enrichment;
+- TARA assets, damage scenarios, attack paths, impact, feasibility, and risk treatment;
+- cybersecurity goals, technical requirements, and controls;
+- ISO/SAE 21434 concepts, UN R155, UN R156, NIST CSF 2.0, ISO/IEC 27001, synthetic OEM policy, and supplier requirements;
+- objective evidence, findings, corrective actions, retesting, and residual-risk approval.
 
-## Architecture
+The application does **not** certify compliance, reproduce Ford internal processes, or contain real OEM data.
 
-Three decoupled layers:
+## Why v2.0 matters
 
-1. **Database access layer** (`db.py`): all queries isolated from UI logic; single source of truth
-2. **AI analyst module** (`ai.py`): calls the Anthropic API using only database-resident evidence; no hallucinated context
-3. **Analyst dashboard** (`app.py`): Streamlit UI with incident explorer, compliance overview, and on-demand AI brief generation
+Version 1 demonstrated traceability. Version 2 models the full compliance-assessment lifecycle:
 
-## Project Structure
+1. Define an assessment campaign and software baseline.
+2. Determine requirement applicability.
+3. Create an evidence request plan.
+4. Assess control design effectiveness.
+5. Verify implementation in the scoped baseline.
+6. Evaluate operating effectiveness using objective evidence.
+7. Score evidence relevance, authenticity, completeness, currency, and scope.
+8. Issue findings and corrective actions.
+9. Retest and route residual risk to an authorized approver.
+10. Defend the assessment through an audit-question simulator.
+
+## Primary demonstration scenario
+
+**Remote TCU compromise → DoIP activity toward the GWM → unauthorized UDS SecurityAccess and RequestDownload attempts.**
+
+The GWM denies the requests and creates a local event. Centralized fleet alerting and TCU-to-GWM event correlation remain incomplete. The resulting compliance-level conclusion is:
+
+- Design effectiveness: **Effective**
+- Implementation: **Implemented**
+- Operating effectiveness: **Partially Effective**
+- Overall status: **Partially Met**
+
+## Features
+
+- Local Python HTTP server and SQLite database
+- No required third-party Python packages
+- Guided learning and analyst modes
+- APIM–GWM–TCU architecture review
+- TARA traceability workspace
+- Cross-framework control mappings
+- Assessment campaigns and software baselines
+- Requirement applicability matrix
+- Evidence request planning
+- Three-layer control evaluation
+- Evidence-quality scoring
+- Current-versus-target profiles
+- Findings and corrective-action workflow
+- Supplier assurance review
+- Audit-defense simulator
+- Optional local Ollama assistant
+- Markdown campaign report export
+
+## Quick start
+
+### Windows
+
+1. Install Python 3.11 or newer.
+2. Download or clone this repository.
+3. Double-click `run_windows.bat`.
+4. Open `http://127.0.0.1:8765` if the browser does not open automatically.
+
+### macOS or Linux
+
+```bash
+chmod +x run_mac_linux.sh
+./run_mac_linux.sh
+```
+
+### Reset the synthetic demonstration data
+
+```bash
+python server.py --reset
+```
+
+## Tests
+
+```bash
+python tests/test_smoke.py
+python -m py_compile server.py database.py advisor.py
+node --check static/app.js
+```
+
+## Optional local AI
+
+The built-in guidance rules require no model. To use a local Ollama model:
+
+```powershell
+$env:OLLAMA_MODEL="llama3.1:8b"
+python server.py
+```
+
+The tool sends only the selected local assessment context to the locally hosted Ollama endpoint.
+
+## Project structure
 
 ```text
-automotive_cybersecurity_compliance_ai_assistant/
-  app.py                # Streamlit analyst dashboard
-  ai.py                 # AI brief generation (Anthropic API, database-grounded)
-  db.py                 # SQLite database access layer
-  schema.sql            # Relational schema: incidents, assets, controls, evidence, mitigations
-  seed.py               # Sample data seeder
-  requirements.txt      # Python dependencies
-  .env.example          # Environment variable template
-  data/
-    project.db          # SQLite database (auto-generated by seed.py)
-  docs/
-    db_access_notes.md
-    query_portfolio.md
-    streamlit_prototype_notes.md
-    video_walkthrough_script.md
-    video_walkthrough_script_4_2.md
+AutoCyber_Traceability_Workbench/
+├── server.py
+├── database.py
+├── advisor.py
+├── schema.sql
+├── seed_data.json
+├── templates/index.html
+├── static/app.js
+├── static/styles.css
+├── data/evidence/
+├── docs/
+├── tests/test_smoke.py
+└── run_windows.bat
 ```
 
-## Setup
+## Interview positioning
 
-Requires Python 3.11+. Recommended on Windows with Python 3.13:
+> I built a local automotive cybersecurity traceability and assurance prototype focused on a synthetic APIM, GWM, and TCU architecture. It connects STRIDE and applicable MITRE ATT&CK enrichment to TARA, risk-derived requirements, control implementation, objective evidence, ISO/SAE 21434 concepts, UN R155/R156, NIST CSF 2.0, ISO 27001, synthetic OEM policy, supplier requirements, findings, corrective actions, retesting, and residual-risk decisions. The tool assists the engineer, but final compliance and risk decisions remain under human authority.
 
-```powershell
-py -3.13 -m venv .venv313
-.\.venv313\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
+## Sources and content boundaries
 
-Dependencies: `streamlit`, `pandas`, `anthropic`, `python-dotenv`
+The prototype stores user-authored summaries, identifiers, and illustrative mappings. It does not reproduce licensed standards. Review `LICENSE_AND_CONTENT_NOTICE.md` before expanding the framework library.
 
-## API Key Configuration
+Useful public references:
 
-The AI feature requires an [Anthropic API key](https://console.anthropic.com/):
+- NIST Cybersecurity Framework 2.0 and Profiles: https://www.nist.gov/cyberframework
+- NIST CSF 2.0 Informative References: https://www.nist.gov/cyberframework/informative-references
+- UN Regulation No. 155: https://unece.org/transport/documents/2021/03/standards/un-regulation-no-155-cyber-security-and-cyber-security
+- UN Regulation No. 156: https://unece.org/transport/documents/2021/03/standards/un-regulation-no-156-software-update-and-software-update
+- MITRE ATT&CK: https://attack.mitre.org/
 
-```powershell
-Copy-Item .env.example .env
-```
+## Limitations
 
-Edit `.env`:
-
-```text
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-The `.env` file is excluded from version control via `.gitignore`.
-
-## Database Initialization
-
-```powershell
-python seed.py
-```
-
-Builds `data/project.db` from `schema.sql` and loads seed incident data. Run once before launching.
-
-## Smoke Test
-
-```powershell
-python db.py
-```
-
-Runs all key query functions and prints results, including `get_ai_context_for_incident()`.
-
-## Launch
-
-```powershell
-python -m streamlit run app.py
-```
-
-Dashboard available at `http://localhost:8501`
-
-## Database API (`db.py`)
-
-**Dashboard queries:**
-
-| Function | Returns |
-|---|---|
-| `get_all_incidents()` | All incidents with metadata |
-| `get_incidents_by_severity(severity)` | Filtered by severity level |
-| `get_incidents_with_assets()` | Incidents joined to vehicle assets |
-| `get_incident_counts_by_severity()` | Aggregated severity breakdown |
-| `get_open_mitigations()` | Unresolved mitigation actions |
-| `get_incident_overview()` | Summary metrics for dashboard KPIs |
-| `get_control_summary()` | ISO/SAE 21434 control coverage |
-| `get_kpi_summary()` | Top-level platform health metrics |
-
-**AI evidence retrieval:**
-
-| Function | Returns |
-|---|---|
-| `get_ai_context_for_incident(incident_id)` | Dict of DataFrames: incident detail, associated controls, evidence records, and mitigation actions. This is the only data passed to the AI model. |
-
-## AI Module (`ai.py`)
-
-| Function | Purpose |
-|---|---|
-| `format_incident_evidence(context)` | Serializes `get_ai_context_for_incident()` output to labeled plain text |
-| `build_analyst_prompt(evidence_text)` | Wraps evidence in hard delimiters to prevent prompt injection and prepends the system prompt |
-| `generate_incident_summary(context)` | Calls Claude Haiku via Anthropic API and returns a structured analyst brief |
-
-The AI model operates exclusively on database-retrieved evidence. No external context is injected.
-
-## Compliance Alignment
-
-| Standard | Coverage |
-|---|---|
-| ISO/SAE 21434 | Cybersecurity incident response, risk assessment, control mapping |
-| UNECE R155 | Vehicle cybersecurity management system (CSMS) requirements |
-| UNECE R156 | Software update management system (SUMS) traceability |
-
-## Technology Stack
-
-| Layer | Technology |
-|---|---|
-| Language | Python 3.11+ |
-| Database | SQLite (embedded, zero infrastructure) |
-| UI | Streamlit |
-| AI | Anthropic Claude API |
-| Data layer | pandas |
+- Synthetic architecture, evidence, policy, suppliers, and software versions
+- Illustrative crosswalks requiring qualified review
+- Not a type-approval, certification, or legal-compliance engine
+- Not representative of Ford proprietary systems, standards, scoring, or governance
+- Does not replace authorized cybersecurity, safety, legal, or regulatory decisions

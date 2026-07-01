@@ -1,4 +1,3 @@
-anthropic>=0.40.0
-pandas>=2.0.0
-python-dotenv>=1.0.0
-streamlit>=1.40.0
+# No third-party Python packages are required for the core prototype.
+# Python 3.11+ is recommended.
+# Optional: Install and run Ollama locally, then set OLLAMA_MODEL to enable local LLM responses.
