@@ -6,23 +6,5 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-
-if not exist "AutoCyber_Traceability_Workbench\server.py" (
-  echo Reconstructing the tested v2.0 source package...
-  python assemble_v2_release.py
-  if errorlevel 1 (
-    echo Source package reconstruction failed.
-    pause
-    exit /b 1
-  )
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -LiteralPath 'AutoCyber_Traceability_Workbench_v2.0_source.zip' -DestinationPath '.' -Force"
-  if errorlevel 1 (
-    echo Source package extraction failed.
-    pause
-    exit /b 1
-  )
-)
-
-cd /d "%~dp0AutoCyber_Traceability_Workbench"
 python server.py
 pause

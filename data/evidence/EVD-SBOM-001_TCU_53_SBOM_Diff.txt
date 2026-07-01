@@ -1,0 +1,5 @@
+SYNTHETIC SBOM DIFFERENCE — REL-TCU-53
+CertCore 2.8.4 -> 3.1.0 | CVE-SYNTH-2026-0421 | HOLD
+DoIPStack 4.0.2 -> 4.2.0 | no known vulnerability | RETEST REQUIRED
+EventSDK 1.7.0 -> 1.8.0 | no known vulnerability | INTEGRATION VALIDATION REQUIRED
+Assessment: SBOM is current and traceable, but the release cannot pass the security gate solely because an SBOM was supplied.

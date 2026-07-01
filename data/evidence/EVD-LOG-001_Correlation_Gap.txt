@@ -1,0 +1,12 @@
+FICTIONAL SYNTHETIC EVIDENCE — NOT REAL OEM DATA
+Scope: TCU and GWM security monitoring
+
+TCU event ID: TCU-SEC-4412
+GWM event ID: GWM-DIAG-9917
+Time difference: 3 seconds
+Shared session identifier: NOT PRESENT
+Shared vehicle event correlation identifier: NOT PRESENT
+Fleet monitor correlation result: TWO SEPARATE LOW-CONFIDENCE EVENTS
+Analyst manual correlation: CONFIRMED SAME ATTACK PATH
+
+Finding candidate: Events are individually logged but lack a common correlation identifier, delaying detection of a TCU-to-GWM attack chain.

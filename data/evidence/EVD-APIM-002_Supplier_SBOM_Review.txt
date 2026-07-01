@@ -1,0 +1,13 @@
+FICTIONAL SYNTHETIC EVIDENCE — NOT REAL OEM DATA
+Component: APIM
+Supplier package: APIM_MEDIA_STACK_4.8.2
+
+SBOM provided: YES
+SBOM format: SPDX-compatible
+Package signature: VALID
+Known-vulnerability scan: COMPLETE
+Source-to-binary reproducibility evidence: NOT PROVIDED
+Supplier secure-development attestation: PROVIDED
+Independent binary-composition analysis: PARTIAL
+
+Assessment clue: The supplier package has useful assurance evidence, but the OEM cannot fully demonstrate source-to-binary provenance or complete independent composition analysis.
