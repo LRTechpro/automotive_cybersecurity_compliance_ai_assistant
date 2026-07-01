@@ -1,0 +1,16 @@
+SYNTHETIC EVIDENCE — TCU 5.3 / GWM 6.4 DOIP-UDS REGRESSION
+Release: REL-TCU-53
+Status: PARTIAL EXECUTION
+Observed:
+- TCU retries DoIP discovery after denial
+- fallback target selection invoked
+- GWM denies unauthorized UDS 0x27 SecurityAccess
+- GWM denies unauthorized UDS 0x34 RequestDownload
+- NRC 0x33 securityAccessDenied returned
+- request forwarded to protected route: NO
+Missing:
+- approved repeatability sample
+- restart-state test
+- policy-update-state test
+- fleet alert confirmation
+- shared security_event_id correlation

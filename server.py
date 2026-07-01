@@ -26,7 +26,7 @@ def utc_now() -> str:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "AutoCyberWorkbench/2.0"
+    server_version = "AutoCyberWorkbench/3.0"
 
     def log_message(self, fmt: str, *args: object) -> None:
         sys.stdout.write(f"[{self.log_date_time_string()}] {fmt % args}\n")
@@ -58,7 +58,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _read_json(self) -> dict:
         length = int(self.headers.get("Content-Length", "0") or "0")
-        if length > 2_000_000:
+        if length > 4_000_000:
             raise ValueError("Request too large")
         raw = self.rfile.read(length) if length else b"{}"
         return json.loads(raw.decode("utf-8"))
@@ -77,45 +77,44 @@ class Handler(SimpleHTTPRequestHandler):
         campaign_id = self._campaign_id(query)
 
         if path in ("/", "/index.html"):
-            self._send_file(TEMPLATE_DIR / "index.html")
-            return
+            return self._send_file(TEMPLATE_DIR / "index.html")
         if path.startswith("/static/"):
             relative = Path(path.removeprefix("/static/"))
             safe = (STATIC_DIR / relative).resolve()
             if STATIC_DIR.resolve() not in safe.parents:
-                self.send_error(HTTPStatus.FORBIDDEN)
-                return
-            self._send_file(safe)
-            return
+                return self.send_error(HTTPStatus.FORBIDDEN)
+            return self._send_file(safe)
         if path == "/api/bootstrap":
-            self._send_json(database.bootstrap(campaign_id))
-            return
+            return self._send_json(database.bootstrap(campaign_id))
         if path == "/api/traceability":
-            component = query.get("component", [None])[0]
-            self._send_json(database.traceability(component))
-            return
+            return self._send_json(database.traceability(query.get("component", [None])[0]))
         if path == "/api/crosswalk":
-            self._send_json(database.crosswalk())
-            return
+            return self._send_json(database.crosswalk())
         if path == "/api/evidence":
-            self._send_json(database.rows("SELECT * FROM evidence ORDER BY id"))
-            return
+            return self._send_json(database.rows("SELECT * FROM evidence ORDER BY id"))
         if path.startswith("/api/evidence/"):
             item = database.evidence_content(path.rsplit("/", 1)[-1])
-            self._send_json(item or {"error": "Evidence not found"}, 200 if item else 404)
-            return
+            return self._send_json(item or {"error": "Evidence not found"}, 200 if item else 404)
+        if path == "/api/release-comparison":
+            base = query.get("base", ["REL-TCU-52"])[0]
+            candidate = query.get("candidate", ["REL-TCU-53"])[0]
+            return self._send_json(database.release_comparison(base, candidate))
+        if path == "/api/change-impact":
+            release = query.get("release_code", ["REL-TCU-53"])[0]
+            return self._send_json(database.analyze_release(release))
+        if path == "/api/release-gate":
+            release = query.get("release_code", ["REL-TCU-53"])[0]
+            return self._send_json(database.gate_posture(release))
         if path == "/api/audit-responses":
-            self._send_json(database.rows("SELECT * FROM audit_responses ORDER BY id DESC"))
-            return
+            return self._send_json(database.rows("SELECT * FROM audit_responses ORDER BY id DESC"))
         if path == "/api/export":
+            release = query.get("release_code", ["REL-TCU-53"])[0]
             EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-            report_path = EXPORT_DIR / f"AutoCyber_Assurance_Campaign_{campaign_id}.md"
-            report_path.write_text(database.export_report(campaign_id), encoding="utf-8")
-            self._send_file(report_path, report_path.name)
-            return
+            report_path = EXPORT_DIR / f"AutoCyber_Continuous_Assurance_{release}.md"
+            report_path.write_text(database.export_report(campaign_id, release), encoding="utf-8")
+            return self._send_file(report_path, report_path.name)
         if path == "/api/health":
-            self._send_json({"status": "ok", "version": "2.0.0", "time": utc_now(), "local_only": True})
-            return
+            return self._send_json({"status": "ok", "version": "3.0.0", "time": utc_now(), "local_only": True})
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:  # noqa: N802
@@ -133,29 +132,31 @@ class Handler(SimpleHTTPRequestHandler):
                 "/api/findings": database.add_finding,
                 "/api/corrective-actions": database.add_corrective_action,
                 "/api/audit-responses": database.add_audit_response,
+                "/api/vulnerabilities": database.add_vulnerability,
+                "/api/release-gates": database.save_release_gate,
             }
             if parsed.path in routes:
                 record_id = routes[parsed.path](payload)
-                self._send_json({"ok": True, "id": record_id}, 201)
-                return
+                return self._send_json({"ok": True, "id": record_id}, 201)
+            if parsed.path == "/api/analyze-release":
+                release_code = str(payload.get("release_code", "REL-TCU-53"))
+                return self._send_json(database.analyze_release(release_code))
+            if parsed.path == "/api/ingest":
+                return self._send_json(database.ingest_artifact(payload), 201)
             if parsed.path == "/api/assistant":
                 prompt = str(payload.get("prompt", "")).strip()
                 if not prompt:
                     raise ValueError("Prompt is required")
-                self._send_json(advisor.advise(prompt, payload.get("context") or {}))
-                return
+                return self._send_json(advisor.advise(prompt, payload.get("context") or {}))
             if parsed.path == "/api/reset":
                 if payload.get("confirm") != "RESET DEMO DATA":
                     raise ValueError("Confirmation phrase does not match")
                 database.initialize_database(reset=True)
-                self._send_json({"ok": True})
-                return
+                return self._send_json({"ok": True})
         except (ValueError, json.JSONDecodeError) as exc:
-            self._send_json({"error": str(exc)}, 400)
-            return
-        except Exception as exc:
-            self._send_json({"error": f"Unexpected error: {exc}"}, 500)
-            return
+            return self._send_json({"error": str(exc)}, 400)
+        except Exception as exc:  # pragma: no cover - surfaced to local user
+            return self._send_json({"error": f"Unexpected error: {exc}"}, 500)
         self.send_error(HTTPStatus.NOT_FOUND)
 
 
@@ -170,7 +171,7 @@ def main() -> None:
     database.initialize_database(reset=args.reset)
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://{args.host}:{args.port}"
-    print(f"AutoCyber Traceability Workbench v2.0 running at {url}")
+    print(f"AutoCyber Traceability & Continuous Assurance Workbench v3.0 running at {url}")
     print("Press Ctrl+C to stop. Data remains local in data/autocyber.db.")
     if not args.no_browser:
         threading.Timer(0.7, lambda: webbrowser.open(url)).start()

@@ -1,0 +1,20 @@
+FICTIONAL SYNTHETIC EVIDENCE — NOT REAL OEM DATA
+Component: GWM
+Test: Signed routing policy enforcement
+
+Test case 1: Modify one byte in routing policy file
+Result: Signature validation failed at boot
+GWM response: Entered restricted-routing mode
+Security alert: Generated and forwarded
+PASS
+
+Test case 2: Replay an older but validly signed routing policy
+Result: Signature valid; policy version lower than monotonic policy counter
+GWM response: Policy rejected
+Security alert: Generated and forwarded
+PASS
+
+Test case 3: Disconnect secure key service during boot
+Result: Policy authenticity could not be verified
+GWM response: Restricted-routing mode
+PASS WITH OBSERVATION: Recovery procedure requires manual service action.

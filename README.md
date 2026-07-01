@@ -1,71 +1,83 @@
-# AutoCyber Traceability & Assurance Workbench
+# AutoCyber Traceability & Continuous Assurance Workbench
 
-A local, portfolio-grade proof of concept for automotive cybersecurity engineering and compliance-assurance work. The application is intentionally limited to a **synthetic APIM, GWM, and TCU architecture** and demonstrates how an engineer connects:
+A local, portfolio-grade automotive cybersecurity engineering and compliance-assurance prototype focused on a **synthetic APIM, GWM, and TCU architecture**.
+
+Version 3 demonstrates how an engineer maintains assurance when software, dependencies, interfaces, vulnerabilities, evidence, detections, and release baselines change.
+
+## What the project demonstrates
+
+The workbench connects:
 
 - vehicle architecture and trust boundaries;
 - STRIDE threat categorization and applicable MITRE ATT&CK enrichment;
-- TARA assets, damage scenarios, attack paths, impact, feasibility, and risk treatment;
-- cybersecurity goals, technical requirements, and controls;
+- TARA assets, damage scenarios, attack paths, impact, feasibility, treatment, and residual risk;
+- cybersecurity goals, technical requirements, controls, and verification;
 - ISO/SAE 21434 concepts, UN R155, UN R156, NIST CSF 2.0, ISO/IEC 27001, synthetic OEM policy, and supplier requirements;
-- objective evidence, findings, corrective actions, retesting, and residual-risk approval.
+- evidence quality, version scope, expiration, staleness, and supersession;
+- SBOM differences, vulnerability reachability, exploitability, mitigation, and release impact;
+- detection telemetry, analytics, validation, and response playbooks;
+- cybersecurity claims, supporting evidence, contradictions, and unresolved gaps;
+- calculated release-gate posture and human approval authority.
 
 The application does **not** certify compliance, reproduce Ford internal processes, or contain real OEM data.
 
-## Why v2.0 matters
+## Version 3 learning scenario
 
-Version 1 demonstrated traceability. Version 2 models the full compliance-assessment lifecycle:
+The primary scenario compares:
 
-1. Define an assessment campaign and software baseline.
-2. Determine requirement applicability.
-3. Create an evidence request plan.
-4. Assess control design effectiveness.
-5. Verify implementation in the scoped baseline.
-6. Evaluate operating effectiveness using objective evidence.
-7. Score evidence relevance, authenticity, completeness, currency, and scope.
-8. Issue findings and corrective actions.
-9. Retest and route residual risk to an authorized approver.
-10. Defend the assessment through an audit-question simulator.
+```text
+Approved baseline: REL-TCU-52 / TCU 5.2.0
+Candidate release: REL-TCU-53 / TCU 5.3.0
+```
 
-## Primary demonstration scenario
+The candidate release changes:
 
-**Remote TCU compromise → DoIP activity toward the GWM → unauthorized UDS SecurityAccess and RequestDownload attempts.**
+1. **Certificate validation library** — CertCore 2.8.4 → 3.1.0
+2. **DoIP retry and route-selection behavior**
+3. **Telemetry event schema** — adds `security_event_id`
 
-The GWM denies the requests and creates a local event. Centralized fleet alerting and TCU-to-GWM event correlation remain incomplete. The resulting compliance-level conclusion is:
+The workbench identifies the consequences:
 
-- Design effectiveness: **Effective**
-- Implementation: **Implemented**
-- Operating effectiveness: **Partially Effective**
-- Overall status: **Partially Met**
+- earlier TCU certificate evidence becomes stale;
+- earlier GWM enforcement evidence requires interaction regression testing;
+- an SBOM match identifies a synthetic High vulnerability;
+- TCU/GWM detection correlation remains unvalidated;
+- cybersecurity claims are no longer fully supported;
+- the candidate release is calculated as **Blocked** pending remediation and evidence.
 
-## Features
+## Version progression
 
-- Local Python HTTP server and SQLite database
-- No required third-party Python packages
+| Version | Capability |
+|---|---|
+| v1 | Trace architecture, TARA, controls, evidence, mappings, and findings |
+| v2 | Plan, execute, defend, and close a compliance assessment campaign |
+| v3 | Maintain assurance across product releases and post-development changes |
+
+## Version 3 features
+
+- Release and software-baseline comparison
+- Change-impact graph
+- Evidence staleness and supersession
+- SBOM version comparison
+- Vehicle-context vulnerability disposition
+- Local artifact ingestion and SHA-256 hashing
+- UDS/gateway log parsing
+- Detection engineering and validation
+- Structured cybersecurity case
+- Release security gate
+- Human decision audit trail
+- Continuous assurance report export
 - Guided learning and analyst modes
-- APIM–GWM–TCU architecture review
-- TARA traceability workspace
-- Cross-framework control mappings
-- Assessment campaigns and software baselines
-- Requirement applicability matrix
-- Evidence request planning
-- Three-layer control evaluation
-- Evidence-quality scoring
-- Current-versus-target profiles
-- Findings and corrective-action workflow
-- Supplier assurance review
-- Audit-defense simulator
-- Optional local Ollama assistant
-- Markdown campaign report export
+- Optional local Ollama integration
 
 ## Quick start
 
 ### Windows
 
 1. Install Python 3.11 or newer.
-2. Clone or download the repository.
+2. Extract the downloaded ZIP or clone the repository.
 3. Double-click `run_windows.bat`.
-4. On the first run, the launcher reconstructs the checksum-verified v2 source ZIP, extracts it, and starts the application.
-5. Open `http://127.0.0.1:8765` if the browser does not open automatically.
+4. Open `http://127.0.0.1:8765` if the browser does not open automatically.
 
 ### macOS or Linux
 
@@ -74,91 +86,76 @@ chmod +x run_mac_linux.sh
 ./run_mac_linux.sh
 ```
 
-The launcher performs the same reconstruction and extraction on its first run.
-
-### Manual reconstruction
-
-```bash
-python assemble_v2_release.py
-python -m zipfile -e AutoCyber_Traceability_Workbench_v2.0_source.zip .
-cd AutoCyber_Traceability_Workbench
-python server.py
-```
-
-The assembly script verifies this SHA-256 value before accepting the reconstructed source package:
-
-```text
-73ac09951150f5751f9385190312815a8cc53366496900218e3d45d874d5abc3
-```
-
-### Reset the synthetic demonstration data
-
-Use `run_windows_reset_demo.bat`, or from the extracted application directory run:
+### Reset the synthetic demonstration
 
 ```bash
 python server.py --reset
 ```
 
-## Tests
+Reset rebuilds the local SQLite demonstration database and clears user-generated files in `data/ingested`. Seeded evidence files in `data/evidence` are preserved.
 
-First reconstruct and extract the application. Then run these commands inside `AutoCyber_Traceability_Workbench`:
+## Recommended learning order
 
-```bash
-python tests/test_smoke.py
-python -m py_compile server.py database.py advisor.py
-node --check static/app.js
+1. Assurance dashboard
+2. Releases & baselines
+3. Change impact
+4. Evidence lifecycle
+5. Vulnerabilities & SBOM
+6. Evidence ingestion
+7. Detection engineering
+8. Cybersecurity case
+9. Release security gate
+10. TARA and framework traceability
+11. Interview walkthrough
+
+Read `QUICK_START.md` for the guided exercise and `INTERVIEW_WALKTHROUGH.md` for the demonstration script.
+
+## Local architecture
+
+```text
+Browser UI
+   ↓
+Python local HTTP server
+   ↓
+SQLite assurance database
+   ├── TARA, controls, requirements, mappings
+   ├── campaigns, evaluations, findings, actions
+   ├── releases, changes, impacts, evidence lifecycle
+   ├── SBOM and vulnerabilities
+   ├── detections and cybersecurity claims
+   └── release-gate decisions
 ```
+
+No third-party Python packages are required for the core application.
 
 ## Optional local AI
 
-The built-in guidance rules require no model. To use a local Ollama model:
+The built-in deterministic guidance requires no model. To use a local Ollama model:
 
 ```powershell
 $env:OLLAMA_MODEL="llama3.1:8b"
 python server.py
 ```
 
-Only the selected assessment context is sent to the locally hosted Ollama endpoint.
+Only selected local assessment context is sent to the locally hosted Ollama endpoint.
 
-## Repository structure
+## Tests
 
-```text
-├── README.md
-├── assemble_v2_release.py
-├── release_parts/               # Checksum-verified source archive parts
-├── run_windows.bat              # Reconstructs, extracts, and launches
-├── run_windows_reset_demo.bat
-├── run_mac_linux.sh
-├── server.py                    # Readable backend source for review
-├── database.py
-├── advisor.py
-├── schema.sql
-├── docs/
-└── tests/
+```bash
+python -m py_compile server.py database.py advisor.py
+node --check static/app.js
+python tests/test_smoke.py
+python tests/test_reset.py
 ```
-
-The reconstructed application includes the complete frontend, seed data, evidence pack, backend, documentation, and tests.
 
 ## Interview positioning
 
-> I built a local automotive cybersecurity traceability and assurance prototype focused on a synthetic APIM, GWM, and TCU architecture. It connects STRIDE and applicable MITRE ATT&CK enrichment to TARA, risk-derived requirements, control implementation, objective evidence, ISO/SAE 21434 concepts, UN R155/R156, NIST CSF 2.0, ISO 27001, synthetic OEM policy, supplier requirements, findings, corrective actions, retesting, and residual-risk decisions. The tool assists the engineer, but final compliance and risk decisions remain under human authority.
+> I built a local continuous automotive cybersecurity assurance prototype focused on a synthetic APIM, GWM, and TCU architecture. It compares approved and candidate software baselines, traces changes to TARA risks, controls, requirements, evidence, framework mappings, detection analytics, and cybersecurity claims, identifies stale evidence and SBOM vulnerabilities, and calculates release-gate posture. The system assists with traceability and evidence gaps, while authorized engineers retain release and residual-risk authority.
 
-## Sources and content boundaries
+## Boundaries
 
-The prototype stores user-authored summaries, identifiers, and illustrative mappings. It does not reproduce licensed standards. Review `LICENSE_AND_CONTENT_NOTICE.md` before expanding the framework library.
-
-Useful public references:
-
-- NIST Cybersecurity Framework 2.0 and Profiles: https://www.nist.gov/cyberframework
-- NIST CSF 2.0 Informative References: https://www.nist.gov/cyberframework/informative-references
-- UN Regulation No. 155: https://unece.org/transport/documents/2021/03/standards/un-regulation-no-155-cyber-security-and-cyber-security
-- UN Regulation No. 156: https://unece.org/transport/documents/2021/03/standards/un-regulation-no-156-software-update-and-software-update
-- MITRE ATT&CK: https://attack.mitre.org/
-
-## Limitations
-
-- Synthetic architecture, evidence, policy, suppliers, and software versions
-- Illustrative crosswalks requiring qualified review
-- Not a type-approval, certification, or legal-compliance engine
-- Not representative of Ford proprietary systems, standards, scoring, or governance
-- Does not replace authorized cybersecurity, safety, legal, or regulatory decisions
+- Synthetic architecture, evidence, policies, suppliers, versions, vulnerabilities, and findings
+- Illustrative framework mappings requiring qualified review
+- No real Ford data, proprietary process claims, or production release decisions
+- No type approval, certification, or legal-compliance determination
+- Licensed standards are not reproduced

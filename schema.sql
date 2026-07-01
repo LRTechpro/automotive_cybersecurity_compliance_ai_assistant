@@ -284,3 +284,158 @@ CREATE TABLE IF NOT EXISTS audit_responses (
   created_at TEXT NOT NULL,
   FOREIGN KEY(question_id) REFERENCES audit_questions(id)
 );
+
+-- Version 3: continuous cybersecurity assurance
+CREATE TABLE IF NOT EXISTS software_releases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  release_code TEXT UNIQUE NOT NULL,
+  component_code TEXT NOT NULL,
+  version TEXT NOT NULL,
+  baseline_code TEXT NOT NULL,
+  release_date TEXT NOT NULL,
+  supplier TEXT NOT NULL,
+  status TEXT NOT NULL,
+  notes TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS release_changes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  release_code TEXT NOT NULL,
+  change_code TEXT UNIQUE NOT NULL,
+  change_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  affected_interfaces TEXT NOT NULL,
+  affected_controls TEXT NOT NULL,
+  affected_tara TEXT NOT NULL,
+  affected_requirements TEXT NOT NULL,
+  cybersecurity_impact TEXT NOT NULL,
+  requires_retest TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS evidence_lifecycle (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  evidence_code TEXT NOT NULL,
+  release_code TEXT NOT NULL,
+  component_code TEXT NOT NULL,
+  valid_for_version TEXT NOT NULL,
+  review_due TEXT NOT NULL,
+  status TEXT NOT NULL,
+  stale_reason TEXT NOT NULL,
+  superseded_by TEXT NOT NULL,
+  required_for_gate TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS vulnerabilities (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  vuln_code TEXT UNIQUE NOT NULL,
+  release_code TEXT NOT NULL,
+  component_code TEXT NOT NULL,
+  affected_component TEXT NOT NULL,
+  affected_versions TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  cvss REAL NOT NULL,
+  reachability TEXT NOT NULL,
+  exploitability TEXT NOT NULL,
+  status TEXT NOT NULL,
+  linked_tara TEXT NOT NULL,
+  linked_control TEXT NOT NULL,
+  remediation TEXT NOT NULL,
+  due_date TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS sbom_components (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  release_code TEXT NOT NULL,
+  component_name TEXT NOT NULL,
+  version TEXT NOT NULL,
+  supplier TEXT NOT NULL,
+  purl TEXT NOT NULL,
+  license TEXT NOT NULL,
+  known_vulnerability TEXT NOT NULL,
+  status TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS change_impacts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  release_code TEXT NOT NULL,
+  source_change_code TEXT NOT NULL,
+  impact_type TEXT NOT NULL,
+  target_code TEXT NOT NULL,
+  target_title TEXT NOT NULL,
+  impact_reason TEXT NOT NULL,
+  action TEXT NOT NULL,
+  status TEXT NOT NULL,
+  UNIQUE(release_code, source_change_code, impact_type, target_code),
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS detection_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rule_code TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  component_code TEXT NOT NULL,
+  behavior TEXT NOT NULL,
+  telemetry_sources TEXT NOT NULL,
+  logic_summary TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  validation_status TEXT NOT NULL,
+  last_tested TEXT NOT NULL,
+  linked_tara TEXT NOT NULL,
+  response_playbook TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cybersecurity_claims (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  claim_code TEXT UNIQUE NOT NULL,
+  parent_claim_code TEXT NOT NULL,
+  title TEXT NOT NULL,
+  claim_type TEXT NOT NULL,
+  statement TEXT NOT NULL,
+  status TEXT NOT NULL,
+  owner TEXT NOT NULL,
+  rationale TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS claim_evidence (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  claim_code TEXT NOT NULL,
+  evidence_code TEXT NOT NULL,
+  support_type TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  UNIQUE(claim_code, evidence_code),
+  FOREIGN KEY(claim_code) REFERENCES cybersecurity_claims(claim_code)
+);
+
+CREATE TABLE IF NOT EXISTS release_gates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  release_code TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  decision_status TEXT NOT NULL,
+  blockers TEXT NOT NULL,
+  conditions TEXT NOT NULL,
+  residual_risk TEXT NOT NULL,
+  approver TEXT NOT NULL,
+  approved_at TEXT NOT NULL,
+  notes TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);
+
+CREATE TABLE IF NOT EXISTS ingested_artifacts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  artifact_code TEXT UNIQUE NOT NULL,
+  artifact_type TEXT NOT NULL,
+  component_code TEXT NOT NULL,
+  release_code TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  parsed_summary TEXT NOT NULL,
+  analyst_status TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(release_code) REFERENCES software_releases(release_code)
+);

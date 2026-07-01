@@ -1,0 +1,8 @@
+SYNTHETIC DETECTION VALIDATION — DET-TCU-GWM-001
+Release: REL-TCU-53
+Rule objective: Correlate TCU privilege transition, unexpected DoIP, and GWM UDS denial into one fleet incident.
+TCU security_event_id emitted: YES
+GWM mapping consumes security_event_id: NO
+Fleet incident count: 2 low-confidence events
+Expected: 1 high-confidence correlated incident
+Result: FAIL / RETEST REQUIRED

@@ -1,0 +1,15 @@
+FICTIONAL SYNTHETIC EVIDENCE — NOT REAL OEM DATA
+Component: GWM
+Control under test: Diagnostic authorization and UDS service filtering
+
+2026-06-18 02:13:15Z | Source: TCU_ZONE | DoIP session request | Target: protected diagnostic route
+2026-06-18 02:13:16Z | UDS 0x10 0x03 Extended Session | Policy result: ALLOW_READ_ONLY
+2026-06-18 02:13:17Z | UDS 0x27 0x01 SecurityAccess seed request | Policy result: DENY
+2026-06-18 02:13:17Z | NRC 0x33 securityAccessDenied returned
+2026-06-18 02:13:18Z | UDS 0x34 RequestDownload | Policy result: DENY
+2026-06-18 02:13:18Z | NRC 0x33 securityAccessDenied returned
+2026-06-18 02:13:18Z | Message not forwarded to protected network
+2026-06-18 02:13:18Z | Local event logged: YES
+2026-06-18 02:13:18Z | Fleet alert generated: NO
+
+Assessment clue: Prevention operated effectively. Detection and centralized reporting are incomplete.

@@ -1,0 +1,11 @@
+FICTIONAL SYNTHETIC EVIDENCE — NOT REAL OEM DATA
+Component: TCU
+Test: Mutual TLS certificate validation and revocation
+
+Valid vehicle certificate: ACCEPTED
+Expired vehicle certificate: REJECTED
+Untrusted certificate chain: REJECTED
+Revoked vehicle certificate while online: REJECTED
+Revoked vehicle certificate during simulated 24-hour connectivity outage: ACCEPTED from cached session
+
+Assessment clue: Authentication is implemented, but revocation freshness and cached-session behavior leave a residual exposure during extended connectivity loss.

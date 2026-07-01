@@ -1,0 +1,1753 @@
+{
+  "components": [
+    {
+      "id": 1,
+      "code": "APIM",
+      "name": "Accessory Protocol Interface Module",
+      "description": "Synthetic infotainment and connectivity module representing Bluetooth, Wi-Fi, USB, mobile-device integration, applications, media, navigation and user-facing services.",
+      "role": "Externally exposed infotainment domain and potential pivot point toward in-vehicle networks.",
+      "external_interfaces": "Bluetooth, Wi-Fi, USB, mobile devices, application services, Automotive Ethernet to GWM",
+      "security_focus": "Application isolation, software integrity, privacy, interface hardening, update authenticity, logging, lateral-movement prevention",
+      "scope_status": "in_scope"
+    },
+    {
+      "id": 2,
+      "code": "GWM",
+      "name": "Gateway Module",
+      "description": "Synthetic central gateway responsible for routing, trust-boundary enforcement, diagnostic-session control and separation of exposed and protected vehicle domains.",
+      "role": "Primary policy-enforcement point between APIM/TCU and protected vehicle networks.",
+      "external_interfaces": "Automotive Ethernet, DoIP, CAN, CAN-FD, UDS diagnostic services",
+      "security_focus": "Segmentation, signed routing policy, UDS authorization, message allowlisting, anomaly detection, evidence-quality logging",
+      "scope_status": "in_scope"
+    },
+    {
+      "id": 3,
+      "code": "TCU",
+      "name": "Telematics Control Unit",
+      "description": "Synthetic externally connected vehicle module representing cellular connectivity, cloud communication, vehicle identity, telemetry, remote commands and OTA staging.",
+      "role": "Remote vehicle entry point and trusted intermediary between cloud services and the GWM.",
+      "external_interfaces": "Cellular, GNSS, OEM cloud, OTA backend, Automotive Ethernet/DoIP to GWM",
+      "security_focus": "Remote attack surface, mTLS, certificate lifecycle, secure boot, OTA integrity, cloud authorization, fleet monitoring",
+      "scope_status": "in_scope"
+    },
+    {
+      "id": 4,
+      "code": "CLOUD",
+      "name": "OEM Cloud Context",
+      "description": "Contextual external system for identity, remote services, telemetry and OTA orchestration. Not assessed as a complete cloud platform in this prototype.",
+      "role": "External trust domain",
+      "external_interfaces": "Internet APIs, mutual TLS, campaign and telemetry services",
+      "security_focus": "Context only",
+      "scope_status": "context"
+    },
+    {
+      "id": 5,
+      "code": "PROTECTED",
+      "name": "Protected Vehicle Networks",
+      "description": "Contextual destination representing safety-relevant, body, powertrain and other domains behind the GWM.",
+      "role": "Protected destination",
+      "external_interfaces": "CAN, CAN-FD, Ethernet and diagnostic routes through GWM",
+      "security_focus": "Context only",
+      "scope_status": "context"
+    }
+  ],
+  "interfaces": [
+    {
+      "id": 1,
+      "source_code": "CLOUD",
+      "target_code": "TCU",
+      "protocol": "Cellular HTTPS / mutual TLS",
+      "trust_boundary": "External cloud to vehicle",
+      "description": "Remote commands, telemetry, software-update metadata and package transfer."
+    },
+    {
+      "id": 2,
+      "source_code": "TCU",
+      "target_code": "GWM",
+      "protocol": "Automotive Ethernet / DoIP",
+      "trust_boundary": "Externally connected ECU to central gateway",
+      "description": "Authorized diagnostic and update traffic from TCU toward vehicle networks."
+    },
+    {
+      "id": 3,
+      "source_code": "APIM",
+      "target_code": "GWM",
+      "protocol": "Automotive Ethernet",
+      "trust_boundary": "Infotainment to gateway",
+      "description": "Infotainment services and controlled access to vehicle data."
+    },
+    {
+      "id": 4,
+      "source_code": "GWM",
+      "target_code": "PROTECTED",
+      "protocol": "CAN / CAN-FD / Ethernet / UDS",
+      "trust_boundary": "Gateway to protected domains",
+      "description": "Policy-controlled message and diagnostic routing."
+    }
+  ],
+  "assets": [
+    {
+      "id": 1,
+      "asset_code": "AST-TCU-01",
+      "component_code": "TCU",
+      "name": "TCU software integrity",
+      "security_properties": "Integrity, authenticity, availability",
+      "description": "The TCU must execute only authorized software and preserve trusted behavior at the remote vehicle boundary."
+    },
+    {
+      "id": 2,
+      "asset_code": "AST-TCU-02",
+      "component_code": "TCU",
+      "name": "Vehicle identity and private keys",
+      "security_properties": "Confidentiality, integrity, authenticity",
+      "description": "Certificates and private keys used to authenticate the vehicle to cloud services."
+    },
+    {
+      "id": 3,
+      "asset_code": "AST-GWM-01",
+      "component_code": "GWM",
+      "name": "Gateway routing policy",
+      "security_properties": "Integrity, authenticity, availability",
+      "description": "Signed configuration that determines permitted traffic between domains."
+    },
+    {
+      "id": 4,
+      "asset_code": "AST-GWM-02",
+      "component_code": "GWM",
+      "name": "Diagnostic authorization state",
+      "security_properties": "Integrity, authenticity, accountability",
+      "description": "Session and authorization state controlling UDS access and programming services."
+    },
+    {
+      "id": 5,
+      "asset_code": "AST-APIM-01",
+      "component_code": "APIM",
+      "name": "APIM software and application boundary",
+      "security_properties": "Integrity, confidentiality, availability",
+      "description": "Infotainment operating environment and application separation."
+    },
+    {
+      "id": 6,
+      "asset_code": "AST-APIM-02",
+      "component_code": "APIM",
+      "name": "Customer profile and token data",
+      "security_properties": "Confidentiality, integrity",
+      "description": "User profiles, tokens and privacy-relevant infotainment data."
+    },
+    {
+      "id": 7,
+      "asset_code": "AST-SYS-01",
+      "component_code": "GWM",
+      "name": "Cross-module security event traceability",
+      "security_properties": "Integrity, availability, accountability",
+      "description": "Ability to correlate APIM, TCU and GWM events into one defensible attack narrative."
+    }
+  ],
+  "threats": [
+    {
+      "id": 1,
+      "threat_code": "THR-TCU-01",
+      "component_code": "TCU",
+      "title": "Remote TCU compromise followed by diagnostic pivot",
+      "stride_categories": "Tampering; Elevation of privilege; Spoofing",
+      "mitre_techniques": "T1190 Exploit Public-Facing Application; T1548 Abuse Elevation Control Mechanism (analogous mapping)",
+      "scenario": "A remote attacker exploits an exposed TCU service, gains execution, initiates a DoIP session toward the GWM and attempts SecurityAccess and RequestDownload against a protected route.",
+      "vulnerability": "Memory-safety weakness or exposed service combined with insufficient process isolation and incomplete fleet-event correlation."
+    },
+    {
+      "id": 2,
+      "threat_code": "THR-APIM-01",
+      "component_code": "APIM",
+      "title": "Compromised APIM attempts cross-domain message injection",
+      "stride_categories": "Tampering; Elevation of privilege; Information disclosure",
+      "mitre_techniques": "T1190 Exploit Public-Facing Application; T1552 Unsecured Credentials (where applicable)",
+      "scenario": "An attacker compromises an APIM application or interface and attempts to send a message toward a protected domain through the GWM.",
+      "vulnerability": "Externally exposed media interfaces, vulnerable third-party application or insecure token storage."
+    },
+    {
+      "id": 3,
+      "threat_code": "THR-GWM-01",
+      "component_code": "GWM",
+      "title": "Gateway policy tampering or rollback",
+      "stride_categories": "Tampering; Repudiation; Elevation of privilege",
+      "mitre_techniques": "T1562.001 Impair Defenses; T1070 Indicator Removal (analogous mapping)",
+      "scenario": "An attacker modifies or replays an older routing policy so previously prohibited APIM or TCU traffic is allowed toward protected networks.",
+      "vulnerability": "Unsigned policy, weak rollback protection or insufficiently protected policy-update process."
+    },
+    {
+      "id": 4,
+      "threat_code": "THR-TCU-02",
+      "component_code": "TCU",
+      "title": "Revoked certificate remains usable during connectivity outage",
+      "stride_categories": "Spoofing; Repudiation",
+      "mitre_techniques": "T1078 Valid Accounts (analogous identity-abuse mapping)",
+      "scenario": "A revoked TCU identity remains accepted because cached sessions or stale revocation information are used while the vehicle is offline.",
+      "vulnerability": "Revocation freshness and cached-session policy do not fully address extended connectivity loss."
+    },
+    {
+      "id": 5,
+      "threat_code": "THR-APIM-02",
+      "component_code": "APIM",
+      "title": "Compromised supplier APIM package passes ordinary signing checks",
+      "stride_categories": "Tampering; Repudiation",
+      "mitre_techniques": "T1195 Supply Chain Compromise",
+      "scenario": "Malicious or compromised code is introduced before OEM signing and is then distributed as an apparently legitimate APIM package.",
+      "vulnerability": "Incomplete source-to-binary provenance, partial composition analysis and overreliance on package signatures."
+    }
+  ],
+  "tara_records": [
+    {
+      "id": 1,
+      "tara_code": "TARA-TCU-001",
+      "component_code": "TCU",
+      "asset_code": "AST-GWM-02",
+      "threat_code": "THR-TCU-01",
+      "damage_scenario": "Unauthorized diagnostic programming reaches a protected vehicle domain, potentially altering ECU software or configuration and impairing vehicle operation.",
+      "attack_path": "Remote cellular entry \u2192 exploit TCU service \u2192 elevate privileges \u2192 initiate DoIP toward GWM \u2192 request UDS SecurityAccess \u2192 attempt RequestDownload toward protected route.",
+      "impact": "Severe",
+      "feasibility": "Medium",
+      "initial_risk": "Critical",
+      "treatment": "Reduce",
+      "cybersecurity_goal": "Only authenticated, authorized and policy-approved entities may initiate diagnostic programming through the GWM.",
+      "residual_risk": "Medium",
+      "analyst_notes": "Primary interview demonstration scenario."
+    },
+    {
+      "id": 2,
+      "tara_code": "TARA-APIM-001",
+      "component_code": "APIM",
+      "asset_code": "AST-GWM-01",
+      "threat_code": "THR-APIM-01",
+      "damage_scenario": "A compromised infotainment environment injects unauthorized traffic toward protected networks or exposes customer information.",
+      "attack_path": "Bluetooth/Wi-Fi/third-party application compromise \u2192 APIM execution \u2192 attempt prohibited message through GWM \u2192 protected-network target.",
+      "impact": "Major",
+      "feasibility": "Medium",
+      "initial_risk": "High",
+      "treatment": "Reduce",
+      "cybersecurity_goal": "APIM-originated traffic shall be restricted to explicitly authorized messages and routes.",
+      "residual_risk": "Low",
+      "analyst_notes": "Demonstrates defense-in-depth and segmentation."
+    },
+    {
+      "id": 3,
+      "tara_code": "TARA-GWM-001",
+      "component_code": "GWM",
+      "asset_code": "AST-GWM-01",
+      "threat_code": "THR-GWM-01",
+      "damage_scenario": "Modified gateway policy removes network separation, allowing untrusted domains to reach protected systems.",
+      "attack_path": "Compromise policy-update authority or storage \u2192 alter or replay policy \u2192 GWM loads unauthorized policy \u2192 prohibited traffic is routed.",
+      "impact": "Severe",
+      "feasibility": "Low",
+      "initial_risk": "High",
+      "treatment": "Reduce",
+      "cybersecurity_goal": "The GWM shall load only authentic, current and authorized routing policy and shall fail securely if verification is unavailable.",
+      "residual_risk": "Low",
+      "analyst_notes": "Demonstrates secure architecture review."
+    },
+    {
+      "id": 4,
+      "tara_code": "TARA-TCU-002",
+      "component_code": "TCU",
+      "asset_code": "AST-TCU-02",
+      "threat_code": "THR-TCU-02",
+      "damage_scenario": "A revoked or stolen vehicle identity remains usable, enabling unauthorized cloud access or impersonation.",
+      "attack_path": "Obtain revoked credential/session \u2192 exploit stale revocation state during outage \u2192 authenticate as legitimate TCU \u2192 issue or receive unauthorized service traffic.",
+      "impact": "Major",
+      "feasibility": "Low",
+      "initial_risk": "Medium",
+      "treatment": "Reduce",
+      "cybersecurity_goal": "Revoked vehicle identities shall become unusable within a defined maximum interval, including during degraded connectivity.",
+      "residual_risk": "Low",
+      "analyst_notes": "Demonstrates nuanced evidence assessment rather than binary compliance."
+    },
+    {
+      "id": 5,
+      "tara_code": "TARA-APIM-002",
+      "component_code": "APIM",
+      "asset_code": "AST-APIM-01",
+      "threat_code": "THR-APIM-02",
+      "damage_scenario": "A supplier-originated malicious component executes within APIM and creates privacy, availability or lateral-movement exposure.",
+      "attack_path": "Supplier development compromise \u2192 malicious code in binary \u2192 normal OEM signing \u2192 APIM update installation \u2192 malicious behavior activates.",
+      "impact": "Major",
+      "feasibility": "Low",
+      "initial_risk": "Medium",
+      "treatment": "Reduce",
+      "cybersecurity_goal": "Supplier software shall have traceable provenance and sufficient independent assurance before approval for APIM release.",
+      "residual_risk": "Medium",
+      "analyst_notes": "Demonstrates supplier cybersecurity assurance."
+    }
+  ],
+  "controls": [
+    {
+      "id": 1,
+      "control_code": "CTRL-GWM-001",
+      "component_code": "GWM",
+      "title": "Diagnostic service authorization",
+      "objective": "Block unauthorized diagnostic-session escalation and programming services from APIM, TCU or other unapproved sources.",
+      "implementation": "Source-aware DoIP policy, session-state validation, UDS SecurityAccess enforcement and explicit deny rules for programming services.",
+      "verification": "Attempt 0x27 and 0x34 from unauthorized TCU/APIM routes and confirm NRC response, non-forwarding, local log and fleet alert."
+    },
+    {
+      "id": 2,
+      "control_code": "CTRL-GWM-002",
+      "component_code": "GWM",
+      "title": "Signed routing policy and anti-rollback",
+      "objective": "Ensure gateway routing policy is authentic, current and fail-secure.",
+      "implementation": "Signature verification, monotonic policy version, protected key service and restricted-routing fallback.",
+      "verification": "Modify policy, replay older signed policy and remove key service during boot."
+    },
+    {
+      "id": 3,
+      "control_code": "CTRL-GWM-003",
+      "component_code": "GWM",
+      "title": "Cross-domain message allowlist",
+      "objective": "Permit only explicitly authorized source, destination and message combinations.",
+      "implementation": "Message-ID allowlist, source-zone binding and alert on denied cross-domain traffic.",
+      "verification": "Inject prohibited APIM-originated message and confirm drop plus alert."
+    },
+    {
+      "id": 4,
+      "control_code": "CTRL-TCU-001",
+      "component_code": "TCU",
+      "title": "Secure boot and signed software",
+      "objective": "Prevent unauthorized TCU software from executing.",
+      "implementation": "Hardware-rooted secure boot, signed update packages and measured boot records.",
+      "verification": "Attempt modified, unsigned and rolled-back TCU software."
+    },
+    {
+      "id": 5,
+      "control_code": "CTRL-TCU-002",
+      "component_code": "TCU",
+      "title": "Vehicle identity and certificate lifecycle",
+      "objective": "Authenticate TCU-cloud communications and make revoked identities unusable within a defined interval.",
+      "implementation": "Mutual TLS, protected private keys, certificate validation, revocation checks and bounded cache lifetime.",
+      "verification": "Test valid, expired, untrusted and revoked certificates in online and offline states."
+    },
+    {
+      "id": 6,
+      "control_code": "CTRL-APIM-001",
+      "component_code": "APIM",
+      "title": "Application isolation and interface hardening",
+      "objective": "Limit compromise through media and application interfaces and contain compromised applications.",
+      "implementation": "Sandboxing, least privilege, parser hardening, token protection and restricted vehicle-service APIs.",
+      "verification": "Fuzz interfaces, inspect token storage and attempt lateral movement through GWM."
+    },
+    {
+      "id": 7,
+      "control_code": "CTRL-APIM-002",
+      "component_code": "APIM",
+      "title": "Supplier software provenance and composition assurance",
+      "objective": "Establish sufficient confidence that APIM supplier binaries correspond to reviewed and approved content.",
+      "implementation": "SBOM, secure-development attestation, independent binary composition analysis, vulnerability scan and source-to-binary provenance evidence.",
+      "verification": "Reject release artifact when required supplier evidence is absent or inconsistent."
+    },
+    {
+      "id": 8,
+      "control_code": "CTRL-LOG-001",
+      "component_code": "GWM",
+      "title": "Cross-module event correlation",
+      "objective": "Link TCU, APIM and GWM events into one traceable security incident.",
+      "implementation": "Shared vehicle event identifier, synchronized time, immutable event metadata and fleet correlation rules.",
+      "verification": "Replay TCU-to-GWM attack and confirm one correlated high-confidence incident is generated."
+    }
+  ],
+  "frameworks": [
+    {
+      "id": 1,
+      "framework_code": "ISO21434",
+      "name": "ISO/SAE 21434",
+      "source_type": "Automotive cybersecurity engineering standard",
+      "version": "Current licensed edition required",
+      "notes": "Prototype stores user-authored summaries and references, not standard text."
+    },
+    {
+      "id": 2,
+      "framework_code": "UNR155",
+      "name": "UN Regulation No. 155",
+      "source_type": "Automotive cybersecurity regulation",
+      "version": "Verify applicable current revision",
+      "notes": "Mappings are illustrative and require regulatory review."
+    },
+    {
+      "id": 3,
+      "framework_code": "UNR156",
+      "name": "UN Regulation No. 156",
+      "source_type": "Software update regulation",
+      "version": "Verify applicable current revision",
+      "notes": "Used for update governance, integrity and traceability."
+    },
+    {
+      "id": 4,
+      "framework_code": "NISTCSF",
+      "name": "NIST Cybersecurity Framework 2.0",
+      "source_type": "Enterprise cybersecurity framework",
+      "version": "2.0",
+      "notes": "Mapped at function/category level for prototype clarity."
+    },
+    {
+      "id": 5,
+      "framework_code": "ISO27001",
+      "name": "ISO/IEC 27001",
+      "source_type": "Information security management standard",
+      "version": "2022",
+      "notes": "Annex A references require verification against a licensed copy."
+    },
+    {
+      "id": 6,
+      "framework_code": "OEM",
+      "name": "Internal OEM Cybersecurity Policy",
+      "source_type": "Illustrative internal policy",
+      "version": "Synthetic v1.0",
+      "notes": "No real Ford policy or proprietary process is included."
+    },
+    {
+      "id": 7,
+      "framework_code": "SUPPLIER",
+      "name": "Supplier Cybersecurity Requirements",
+      "source_type": "Illustrative supplier assurance policy",
+      "version": "Synthetic v1.0",
+      "notes": "Prototype supplier requirements only."
+    },
+    {
+      "id": 8,
+      "framework_code": "STRIDE",
+      "name": "STRIDE",
+      "source_type": "Threat categorization method",
+      "version": "Method",
+      "notes": "Not a compliance framework."
+    },
+    {
+      "id": 9,
+      "framework_code": "MITRE",
+      "name": "MITRE ATT&CK",
+      "source_type": "Adversary behavior knowledge base",
+      "version": "Verify current technique references",
+      "notes": "Analogous mappings only; ATT&CK is not an automotive compliance standard."
+    }
+  ],
+  "requirements": [
+    {
+      "id": 1,
+      "requirement_code": "REQ-ISO-TARA",
+      "framework_code": "ISO21434",
+      "reference": "Clause 15 \u2014 TARA methods",
+      "title": "Structured threat analysis and risk assessment",
+      "summary": "Identify assets, damage scenarios, threat scenarios, attack feasibility, impact and risk treatment using an approved method.",
+      "applicability": "All APIM, GWM and TCU TARA records",
+      "verification_note": "Review complete traceability and rationale; verify organization-approved scoring method in production."
+    },
+    {
+      "id": 2,
+      "requirement_code": "REQ-ISO-CONCEPT",
+      "framework_code": "ISO21434",
+      "reference": "Clause 9 \u2014 Concept phase",
+      "title": "Cybersecurity goals derived from risk",
+      "summary": "Derive cybersecurity goals and claims from assessed risks and item definition.",
+      "applicability": "High and critical TARA risks",
+      "verification_note": "Trace each goal to one or more TARA records."
+    },
+    {
+      "id": 3,
+      "requirement_code": "REQ-ISO-EVIDENCE",
+      "framework_code": "ISO21434",
+      "reference": "Lifecycle work products and verification",
+      "title": "Requirements, verification and evidence traceability",
+      "summary": "Maintain traceability from cybersecurity goals to requirements, implementation and verification evidence.",
+      "applicability": "All security controls",
+      "verification_note": "Confirm implementation and test evidence are linked and reviewed."
+    },
+    {
+      "id": 4,
+      "requirement_code": "REQ-R155-RISK",
+      "framework_code": "UNR155",
+      "reference": "CSMS risk identification and treatment",
+      "title": "Identify, assess and mitigate vehicle cyber risks",
+      "summary": "Demonstrate a managed process for identifying relevant risks and implementing mitigations throughout the vehicle lifecycle.",
+      "applicability": "APIM, GWM and TCU risks",
+      "verification_note": "Review risk records, treatment decisions, ownership and reassessment."
+    },
+    {
+      "id": 5,
+      "requirement_code": "REQ-R155-MON",
+      "framework_code": "UNR155",
+      "reference": "Monitoring, detection and response",
+      "title": "Monitor and respond to attacks and vulnerabilities",
+      "summary": "Support detection, analysis and response for cybersecurity events and emerging vulnerabilities.",
+      "applicability": "TCU/GWM monitoring and cross-module correlation",
+      "verification_note": "Verify events are logged, correlated, escalated and linked to response actions."
+    },
+    {
+      "id": 6,
+      "requirement_code": "REQ-R155-SUP",
+      "framework_code": "UNR155",
+      "reference": "Supply-chain risk management",
+      "title": "Manage supplier cybersecurity dependencies",
+      "summary": "Obtain and evaluate sufficient supplier cybersecurity assurance for relevant components and software.",
+      "applicability": "APIM supplier software",
+      "verification_note": "Review SBOM, vulnerability analysis, provenance, testing and remediation obligations."
+    },
+    {
+      "id": 7,
+      "requirement_code": "REQ-R156-UPD",
+      "framework_code": "UNR156",
+      "reference": "Secure software update process",
+      "title": "Protect software-update authenticity and integrity",
+      "summary": "Ensure software updates are authorized, traceable and protected against unauthorized modification or rollback.",
+      "applicability": "TCU and APIM updates; GWM policy updates",
+      "verification_note": "Review signature, version, authorization, rollback and record evidence."
+    },
+    {
+      "id": 8,
+      "requirement_code": "REQ-NIST-PR",
+      "framework_code": "NISTCSF",
+      "reference": "Protect function",
+      "title": "Apply safeguards to manage cybersecurity risk",
+      "summary": "Use identity, access, platform security and data-security safeguards appropriate to the assessed risk.",
+      "applicability": "All preventive controls",
+      "verification_note": "Map control implementation and tests to the relevant outcome."
+    },
+    {
+      "id": 9,
+      "requirement_code": "REQ-NIST-DE",
+      "framework_code": "NISTCSF",
+      "reference": "Detect function",
+      "title": "Detect and analyze anomalous activity",
+      "summary": "Monitor assets and services and analyze potentially adverse events.",
+      "applicability": "TCU/GWM security monitoring",
+      "verification_note": "Confirm event quality, correlation and escalation behavior."
+    },
+    {
+      "id": 10,
+      "requirement_code": "REQ-27001-LOG",
+      "framework_code": "ISO27001",
+      "reference": "Annex A 8.15 / 8.16",
+      "title": "Logging and monitoring activities",
+      "summary": "Produce, protect, review and monitor logs supporting detection and investigation.",
+      "applicability": "APIM, GWM and TCU logs",
+      "verification_note": "Verify completeness, integrity, access control, retention and monitoring."
+    },
+    {
+      "id": 11,
+      "requirement_code": "REQ-27001-CRYPTO",
+      "framework_code": "ISO27001",
+      "reference": "Annex A 8.24",
+      "title": "Appropriate use of cryptography",
+      "summary": "Define and apply cryptographic controls and key-management practices appropriate to risk.",
+      "applicability": "TCU identity, signed GWM policy and software updates",
+      "verification_note": "Review algorithms, key protection, lifecycle and validation tests."
+    },
+    {
+      "id": 12,
+      "requirement_code": "REQ-27001-SUP",
+      "framework_code": "ISO27001",
+      "reference": "Annex A 5.19\u20135.22",
+      "title": "Supplier relationship security",
+      "summary": "Define, monitor and manage information-security obligations in supplier relationships.",
+      "applicability": "APIM supplier evidence",
+      "verification_note": "Review contractual requirements, evidence and ongoing monitoring."
+    },
+    {
+      "id": 13,
+      "requirement_code": "REQ-OEM-GWM",
+      "framework_code": "OEM",
+      "reference": "OEM-GW-SEC-01",
+      "title": "Gateway diagnostic isolation",
+      "summary": "The GWM shall reject unauthorized programming requests from externally exposed vehicle domains and report the attempt to fleet monitoring.",
+      "applicability": "GWM diagnostic routes from TCU and APIM",
+      "verification_note": "Require prevention, local logging and centralized alert evidence."
+    },
+    {
+      "id": 14,
+      "requirement_code": "REQ-OEM-CORR",
+      "framework_code": "OEM",
+      "reference": "OEM-MON-SEC-04",
+      "title": "Cross-module event correlation",
+      "summary": "Security events forming one attack path shall share sufficient identifiers for automated correlation and escalation.",
+      "applicability": "TCU-to-GWM and APIM-to-GWM events",
+      "verification_note": "Replay attack and confirm a single correlated incident."
+    },
+    {
+      "id": 15,
+      "requirement_code": "REQ-SUP-APIM",
+      "framework_code": "SUPPLIER",
+      "reference": "SUP-APIM-07",
+      "title": "Supplier software transparency",
+      "summary": "APIM supplier releases shall include an SBOM, vulnerability analysis, secure-development evidence and agreed provenance artifacts.",
+      "applicability": "APIM supplier packages",
+      "verification_note": "Reject or escalate release when mandatory evidence is absent."
+    },
+    {
+      "id": 16,
+      "requirement_code": "REQ-STRIDE",
+      "framework_code": "STRIDE",
+      "reference": "STRIDE categories",
+      "title": "Systematic threat-category review",
+      "summary": "Review each relevant trust boundary for spoofing, tampering, repudiation, information disclosure, denial of service and elevation of privilege.",
+      "applicability": "Architecture and data flows",
+      "verification_note": "Confirm category review is documented, not treated as a final risk rating."
+    },
+    {
+      "id": 17,
+      "requirement_code": "REQ-MITRE",
+      "framework_code": "MITRE",
+      "reference": "Applicable ATT&CK techniques",
+      "title": "Adversary behavior enrichment",
+      "summary": "Associate applicable ATT&CK techniques with threat scenarios to enrich detection and response analysis.",
+      "applicability": "Remote and supply-chain scenarios where mapping is defensible",
+      "verification_note": "Require analyst confirmation and document that mapping is analogous where not vehicle-specific."
+    }
+  ],
+  "control_mappings": [
+    {
+      "id": 1,
+      "control_code": "CTRL-GWM-001",
+      "requirement_code": "REQ-ISO-EVIDENCE",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "The control converts a risk-derived goal into testable gateway behavior and evidence."
+    },
+    {
+      "id": 2,
+      "control_code": "CTRL-GWM-001",
+      "requirement_code": "REQ-R155-RISK",
+      "relationship": "mitigates",
+      "confidence": "High",
+      "rationale": "It treats the diagnostic-pivot risk identified in TARA-TCU-001."
+    },
+    {
+      "id": 3,
+      "control_code": "CTRL-GWM-001",
+      "requirement_code": "REQ-OEM-GWM",
+      "relationship": "direct",
+      "confidence": "High",
+      "rationale": "The synthetic OEM requirement directly calls for denial and reporting."
+    },
+    {
+      "id": 4,
+      "control_code": "CTRL-GWM-001",
+      "requirement_code": "REQ-NIST-PR",
+      "relationship": "supports",
+      "confidence": "Medium",
+      "rationale": "Diagnostic authorization is an access-control and platform-protection safeguard."
+    },
+    {
+      "id": 5,
+      "control_code": "CTRL-GWM-002",
+      "requirement_code": "REQ-R156-UPD",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "Gateway policy is software/configuration requiring authenticity, authorization and rollback protection."
+    },
+    {
+      "id": 6,
+      "control_code": "CTRL-GWM-002",
+      "requirement_code": "REQ-27001-CRYPTO",
+      "relationship": "supports",
+      "confidence": "Medium",
+      "rationale": "Policy-signature and key-management controls apply cryptography to configuration integrity."
+    },
+    {
+      "id": 7,
+      "control_code": "CTRL-GWM-003",
+      "requirement_code": "REQ-R155-RISK",
+      "relationship": "mitigates",
+      "confidence": "High",
+      "rationale": "Network segmentation limits lateral movement from exposed domains."
+    },
+    {
+      "id": 8,
+      "control_code": "CTRL-TCU-001",
+      "requirement_code": "REQ-R156-UPD",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "Secure boot and signed software protect update authenticity and integrity."
+    },
+    {
+      "id": 9,
+      "control_code": "CTRL-TCU-002",
+      "requirement_code": "REQ-27001-CRYPTO",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "Vehicle identity depends on cryptography and certificate lifecycle management."
+    },
+    {
+      "id": 10,
+      "control_code": "CTRL-TCU-002",
+      "requirement_code": "REQ-NIST-PR",
+      "relationship": "supports",
+      "confidence": "Medium",
+      "rationale": "Mutual authentication protects service access."
+    },
+    {
+      "id": 11,
+      "control_code": "CTRL-APIM-001",
+      "requirement_code": "REQ-STRIDE",
+      "relationship": "responds to",
+      "confidence": "High",
+      "rationale": "The control addresses tampering, information disclosure and elevation-of-privilege threats identified at APIM interfaces."
+    },
+    {
+      "id": 12,
+      "control_code": "CTRL-APIM-002",
+      "requirement_code": "REQ-R155-SUP",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "Supplier assurance evidence supports supply-chain risk management."
+    },
+    {
+      "id": 13,
+      "control_code": "CTRL-APIM-002",
+      "requirement_code": "REQ-27001-SUP",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "The control supports supplier relationship security and monitoring."
+    },
+    {
+      "id": 14,
+      "control_code": "CTRL-APIM-002",
+      "requirement_code": "REQ-SUP-APIM",
+      "relationship": "direct",
+      "confidence": "High",
+      "rationale": "It implements the synthetic supplier evidence requirement."
+    },
+    {
+      "id": 15,
+      "control_code": "CTRL-LOG-001",
+      "requirement_code": "REQ-R155-MON",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "Correlation improves monitoring, detection and response."
+    },
+    {
+      "id": 16,
+      "control_code": "CTRL-LOG-001",
+      "requirement_code": "REQ-NIST-DE",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "It enables detection and analysis of related adverse events."
+    },
+    {
+      "id": 17,
+      "control_code": "CTRL-LOG-001",
+      "requirement_code": "REQ-27001-LOG",
+      "relationship": "supports",
+      "confidence": "High",
+      "rationale": "It improves logging and monitoring effectiveness."
+    },
+    {
+      "id": 18,
+      "control_code": "CTRL-LOG-001",
+      "requirement_code": "REQ-OEM-CORR",
+      "relationship": "direct",
+      "confidence": "High",
+      "rationale": "It directly implements the synthetic cross-module correlation requirement."
+    }
+  ],
+  "evidence": [
+    {
+      "id": 1,
+      "evidence_code": "EVD-TCU-001",
+      "component_code": "TCU",
+      "title": "Remote exploit indicators",
+      "evidence_type": "Security log",
+      "file_name": "EVD-TCU-001_Remote_Exploit_Indicators.txt",
+      "summary": "Shows malformed external input, process exception, unexpected outbound connection, privilege transition and unscheduled DoIP discovery.",
+      "status": "Review required",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-18T02:13:18Z"
+    },
+    {
+      "id": 2,
+      "evidence_code": "EVD-GWM-001",
+      "component_code": "GWM",
+      "title": "UDS enforcement log",
+      "evidence_type": "Control test log",
+      "file_name": "EVD-GWM-001_UDS_Enforcement_Log.txt",
+      "summary": "GWM denied SecurityAccess and RequestDownload and did not forward the request; centralized alert was missing.",
+      "status": "Partially supports",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-18T02:13:18Z"
+    },
+    {
+      "id": 3,
+      "evidence_code": "EVD-GWM-002",
+      "component_code": "GWM",
+      "title": "Policy integrity and rollback test",
+      "evidence_type": "Verification result",
+      "file_name": "EVD-GWM-002_Policy_Integrity_Test.txt",
+      "summary": "Modified and replayed policy were rejected; fail-secure behavior observed with a recovery observation.",
+      "status": "Supports",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-19T16:00:00Z"
+    },
+    {
+      "id": 4,
+      "evidence_code": "EVD-APIM-001",
+      "component_code": "APIM",
+      "title": "APIM interface penetration test",
+      "evidence_type": "Penetration test",
+      "file_name": "EVD-APIM-001_Interface_Pentest.txt",
+      "summary": "Shows token-storage weakness and attempted APIM-to-protected-network movement blocked by GWM.",
+      "status": "Supports with findings",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-20T12:00:00Z"
+    },
+    {
+      "id": 5,
+      "evidence_code": "EVD-TCU-002",
+      "component_code": "TCU",
+      "title": "Certificate revocation test",
+      "evidence_type": "Verification result",
+      "file_name": "EVD-TCU-002_Certificate_Revocation_Test.txt",
+      "summary": "Revoked certificates were rejected online but cached session behavior remained permissive during simulated outage.",
+      "status": "Partially supports",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-21T10:00:00Z"
+    },
+    {
+      "id": 6,
+      "evidence_code": "EVD-APIM-002",
+      "component_code": "APIM",
+      "title": "Supplier SBOM and provenance review",
+      "evidence_type": "Supplier evidence",
+      "file_name": "EVD-APIM-002_Supplier_SBOM_Review.txt",
+      "summary": "SBOM and attestation exist, but source-to-binary provenance and independent composition analysis are incomplete.",
+      "status": "Insufficient",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-22T14:30:00Z"
+    },
+    {
+      "id": 7,
+      "evidence_code": "EVD-LOG-001",
+      "component_code": "GWM",
+      "title": "Cross-module correlation gap",
+      "evidence_type": "Monitoring assessment",
+      "file_name": "EVD-LOG-001_Correlation_Gap.txt",
+      "summary": "TCU and GWM events were logged separately without a shared identifier and required manual correlation.",
+      "status": "Gap identified",
+      "sha256": "AUTO",
+      "collected_at": "2026-06-23T09:00:00Z"
+    },
+    {
+      "id": 8,
+      "evidence_code": "EVD-TCU-003",
+      "component_code": "TCU",
+      "title": "TCU 5.3 certificate regression plan",
+      "evidence_type": "Pending verification",
+      "file_name": "EVD-TCU-003_Certificate_Regression_Pending.txt",
+      "summary": "Defines required 5.3 certificate and degraded-connectivity regression cases; execution is pending.",
+      "status": "Pending",
+      "sha256": "AUTO",
+      "collected_at": "2026-07-01T12:00:00Z"
+    },
+    {
+      "id": 9,
+      "evidence_code": "EVD-TCU-004",
+      "component_code": "TCU/GWM",
+      "title": "TCU 5.3 DoIP/UDS regression",
+      "evidence_type": "Partial verification result",
+      "file_name": "EVD-TCU-004_DoIP_UDS_Regression_Pending.txt",
+      "summary": "Prevention remains effective in partial testing, but repeatability, state coverage, alerting, and correlation remain incomplete.",
+      "status": "Partially supports",
+      "sha256": "AUTO",
+      "collected_at": "2026-07-01T12:10:00Z"
+    },
+    {
+      "id": 10,
+      "evidence_code": "EVD-SBOM-001",
+      "component_code": "TCU",
+      "title": "TCU 5.3 SBOM difference",
+      "evidence_type": "SBOM comparison",
+      "file_name": "EVD-SBOM-001_TCU_53_SBOM_Diff.txt",
+      "summary": "Shows dependency changes and the high-severity CertCore vulnerability affecting the candidate release.",
+      "status": "Supports with blocker",
+      "sha256": "AUTO",
+      "collected_at": "2026-07-01T12:20:00Z"
+    },
+    {
+      "id": 11,
+      "evidence_code": "EVD-DET-001",
+      "component_code": "TCU/GWM",
+      "title": "Correlation rule validation",
+      "evidence_type": "Detection validation",
+      "file_name": "EVD-DET-001_Correlation_Validation_Pending.txt",
+      "summary": "TCU emits a shared ID but GWM/fleet mapping does not consume it; one correlated incident is not produced.",
+      "status": "Failed / retest required",
+      "sha256": "AUTO",
+      "collected_at": "2026-07-01T12:30:00Z"
+    }
+  ],
+  "assessments": [
+    {
+      "requirement_code": "REQ-OEM-GWM",
+      "control_code": "CTRL-GWM-001",
+      "component_code": "GWM",
+      "evidence_codes": "EVD-TCU-001,EVD-GWM-001",
+      "status": "Partially met",
+      "rationale": "The GWM prevented unauthorized SecurityAccess and RequestDownload and did not forward the request. The synthetic OEM requirement also requires fleet reporting, but no centralized alert was generated.",
+      "recommendation": "Preserve the denial behavior and add a high-severity fleet alert containing source zone, session identifier, requested service, target route and vehicle event correlation ID.",
+      "assessor": "Demo Analyst",
+      "created_at": "2026-06-30T10:00:00Z"
+    },
+    {
+      "requirement_code": "REQ-OEM-CORR",
+      "control_code": "CTRL-LOG-001",
+      "component_code": "GWM",
+      "evidence_codes": "EVD-TCU-001,EVD-GWM-001,EVD-LOG-001",
+      "status": "Not met",
+      "rationale": "TCU and GWM evidence describe the same attack path but lack a shared event identifier. The fleet monitor created separate low-confidence events requiring manual correlation.",
+      "recommendation": "Generate a common vehicle security event ID at the first boundary crossing and propagate it through TCU, DoIP, GWM policy and fleet-monitoring records.",
+      "assessor": "Demo Analyst",
+      "created_at": "2026-06-30T10:05:00Z"
+    }
+  ],
+  "findings": [
+    {
+      "assessment_id": 2,
+      "title": "TCU and GWM events cannot be automatically correlated",
+      "severity": "High",
+      "status": "Open",
+      "recommendation": "Implement shared event identifiers and a fleet correlation rule for remote-entry-to-diagnostic-pivot sequences.",
+      "owner": "Vehicle Security Monitoring",
+      "due_date": "2026-08-15",
+      "residual_risk": "High until retest",
+      "created_at": "2026-06-30T10:10:00Z",
+      "campaign_id": 1
+    }
+  ],
+  "campaigns": [
+    {
+      "id": 1,
+      "campaign_code": "CMP-2026-APIM-GWM-TCU",
+      "title": "2026 APIM\u2013GWM\u2013TCU Cybersecurity Assurance Review",
+      "objective": "Assess whether risk-derived controls are appropriately designed, implemented and operating effectively for the synthetic APIM, GWM and TCU baseline.",
+      "vehicle_program": "Synthetic Connected Vehicle Platform",
+      "model_year": "MY2027 (synthetic)",
+      "scope": "APIM, GWM, TCU, relevant cloud, diagnostic and in-vehicle interfaces",
+      "software_baseline": "APIM 8.4.2; GWM 6.4.0; TCU 5.2.1",
+      "period_start": "2026-06-01",
+      "period_end": "2026-07-31",
+      "assessor": "Harold Watkins",
+      "approver": "Cybersecurity Engineering Manager",
+      "due_date": "2026-07-31",
+      "status": "In Progress",
+      "created_at": "2026-07-01T09:00:00Z"
+    }
+  ],
+  "campaign_components": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "component_code": "APIM",
+      "software_version": "8.4.2",
+      "environment": "Production-equivalent bench",
+      "in_scope": "Yes",
+      "notes": "Bluetooth, Wi-Fi, USB, application and update paths."
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "component_code": "GWM",
+      "software_version": "6.4.0",
+      "environment": "Production-equivalent bench",
+      "in_scope": "Yes",
+      "notes": "DoIP, UDS authorization, segmentation, routing and event reporting."
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "component_code": "TCU",
+      "software_version": "5.2.1",
+      "environment": "Production-equivalent bench",
+      "in_scope": "Yes",
+      "notes": "Cellular, cloud identity, OTA staging, telemetry and gateway access."
+    }
+  ],
+  "applicability": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "requirement_code": "REQ-OEM-GWM",
+      "component_code": "GWM",
+      "decision": "Applicable",
+      "rationale": "The TCU and APIM are exposed domains that can initiate DoIP traffic toward the GWM; gateway diagnostic isolation is directly relevant.",
+      "requirement_owner": "Vehicle Network Security",
+      "review_status": "Approved for assessment",
+      "updated_at": "2026-07-01T09:10:00Z"
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "requirement_code": "REQ-ISO-TARA",
+      "component_code": "TCU",
+      "decision": "Applicable",
+      "rationale": "The remote TCU attack surface creates risk scenarios that require structured threat and risk analysis.",
+      "requirement_owner": "Cybersecurity Engineering",
+      "review_status": "Approved for assessment",
+      "updated_at": "2026-07-01T09:12:00Z"
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "requirement_code": "REQ-SUP-APIM",
+      "component_code": "APIM",
+      "decision": "Applicable",
+      "rationale": "APIM software is supplier-developed and requires assurance artifacts before release.",
+      "requirement_owner": "Supplier Cybersecurity",
+      "review_status": "Approved for assessment",
+      "updated_at": "2026-07-01T09:14:00Z"
+    },
+    {
+      "id": 4,
+      "campaign_id": 1,
+      "requirement_code": "REQ-UN156-UPDATE",
+      "component_code": "TCU",
+      "decision": "Applicable",
+      "rationale": "The TCU stages and authenticates remote software updates.",
+      "requirement_owner": "Software Update Compliance",
+      "review_status": "Approved for assessment",
+      "updated_at": "2026-07-01T09:16:00Z"
+    },
+    {
+      "id": 5,
+      "campaign_id": 1,
+      "requirement_code": "REQ-NIST-GV",
+      "component_code": "APIM",
+      "decision": "Indirect / organizational",
+      "rationale": "Governance outcomes apply at program level rather than as an APIM firmware behavior.",
+      "requirement_owner": "Cyber Risk Governance",
+      "review_status": "Needs reviewer confirmation",
+      "updated_at": "2026-07-01T09:18:00Z"
+    }
+  ],
+  "evidence_requests": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "request_code": "ER-GWM-001",
+      "requirement_code": "REQ-OEM-GWM",
+      "component_code": "GWM",
+      "requested_evidence": "Approved gateway policy; software baseline; UDS capture for unauthorized 0x27 and 0x34; local GWM event; fleet-monitoring alert; test procedure and result.",
+      "evidence_owner": "GWM Validation Team",
+      "due_date": "2026-07-10",
+      "status": "Partially Received",
+      "received_evidence_codes": "EVD-GWM-001,EVD-LOG-001",
+      "sufficiency_notes": "Prevention and local logging are evidenced; centralized alerting and shared event correlation are not demonstrated."
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "request_code": "ER-TCU-001",
+      "requirement_code": "REQ-UN156-UPDATE",
+      "component_code": "TCU",
+      "requested_evidence": "Certificate policy; online and offline revocation test; package-signature test; software version; OTA sequence; failure logs.",
+      "evidence_owner": "TCU Software Team",
+      "due_date": "2026-07-12",
+      "status": "Received",
+      "received_evidence_codes": "EVD-TCU-002",
+      "sufficiency_notes": "Offline cache behavior requires assessment and a documented maximum freshness period."
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "request_code": "ER-APIM-001",
+      "requirement_code": "REQ-SUP-APIM",
+      "component_code": "APIM",
+      "requested_evidence": "Supplier SBOM; signed package; vulnerability scan; secure-development attestation; source-to-binary provenance; independent composition analysis.",
+      "evidence_owner": "APIM Supplier Manager",
+      "due_date": "2026-07-15",
+      "status": "Partially Received",
+      "received_evidence_codes": "EVD-APIM-002",
+      "sufficiency_notes": "SBOM and supplier attestations exist; reproducibility and independent composition evidence remain incomplete."
+    }
+  ],
+  "control_evaluations": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "requirement_code": "REQ-OEM-GWM",
+      "control_code": "CTRL-GWM-001",
+      "component_code": "GWM",
+      "evidence_codes": "EVD-TCU-001,EVD-GWM-001,EVD-LOG-001",
+      "design_status": "Effective",
+      "implementation_status": "Implemented",
+      "effectiveness_status": "Partially Effective",
+      "overall_status": "Partially Met",
+      "evidence_relevance": 5,
+      "evidence_authenticity": 4,
+      "evidence_completeness": 3,
+      "evidence_currency": 5,
+      "evidence_scope": 4,
+      "rationale": "The control design addresses source-aware diagnostic authorization and the GWM demonstrably denied unauthorized 0x27 and 0x34 requests. The operating evidence does not demonstrate centralized alerting or automatic TCU-to-GWM event correlation.",
+      "recommendation": "Retain deny behavior; add fleet alerting, a shared event identifier, and end-to-end retest evidence.",
+      "assessor": "Harold Watkins",
+      "reviewer": "Cybersecurity Engineering Manager",
+      "created_at": "2026-07-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "requirement_code": "REQ-UN156-UPDATE",
+      "control_code": "CTRL-TCU-002",
+      "component_code": "TCU",
+      "evidence_codes": "EVD-TCU-002",
+      "design_status": "Effective",
+      "implementation_status": "Implemented",
+      "effectiveness_status": "Partially Effective",
+      "overall_status": "Partially Met",
+      "evidence_relevance": 5,
+      "evidence_authenticity": 4,
+      "evidence_completeness": 3,
+      "evidence_currency": 5,
+      "evidence_scope": 4,
+      "rationale": "Online certificate validation and revocation are demonstrated. A cached session remains accepted during a prolonged connectivity outage, leaving revocation-freshness behavior insufficiently bounded.",
+      "recommendation": "Define maximum offline cache lifetime and fail behavior; repeat outage and reconnection tests.",
+      "assessor": "Harold Watkins",
+      "reviewer": "Software Update Compliance Lead",
+      "created_at": "2026-07-01T10:15:00Z"
+    }
+  ],
+  "corrective_actions": [
+    {
+      "id": 1,
+      "finding_id": 1,
+      "action_code": "CA-GWM-001",
+      "root_cause": "GWM and TCU logging requirements were developed independently without an end-to-end vehicle-security correlation requirement.",
+      "action_plan": "Add a shared vehicle-security event identifier, emit a high-severity fleet alert, and implement a correlation rule for the TCU compromise to GWM diagnostic-pivot sequence.",
+      "interim_mitigation": "Daily analyst review of TCU DoIP anomalies and GWM diagnostic-denial events using time and synthetic VIN.",
+      "owner": "Vehicle Security Monitoring",
+      "target_date": "2026-08-15",
+      "status": "In Progress",
+      "completion_evidence_codes": "",
+      "retest_status": "Not Started",
+      "retest_notes": "Retest must verify one correlated fleet incident and preservation of existing deny behavior.",
+      "approver": "Cybersecurity Engineering Manager",
+      "updated_at": "2026-07-01T10:30:00Z"
+    }
+  ],
+  "supplier_assessments": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "supplier_name": "Synthetic Infotainment Supplier",
+      "component_code": "APIM",
+      "artifact": "Software Bill of Materials",
+      "status": "Received \u2014 acceptable",
+      "evidence_code": "EVD-APIM-002",
+      "gap": "None for inventory coverage.",
+      "recommendation": "Refresh SBOM for each release candidate.",
+      "owner": "Supplier Cybersecurity"
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "supplier_name": "Synthetic Infotainment Supplier",
+      "component_code": "APIM",
+      "artifact": "Source-to-binary provenance",
+      "status": "Missing",
+      "evidence_code": "",
+      "gap": "No reproducible-build or source-to-binary traceability evidence.",
+      "recommendation": "Require signed build provenance and independent composition analysis before release approval.",
+      "owner": "Supplier Cybersecurity"
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "supplier_name": "Synthetic Connectivity Supplier",
+      "component_code": "TCU",
+      "artifact": "Certificate lifecycle test evidence",
+      "status": "Partially acceptable",
+      "evidence_code": "EVD-TCU-002",
+      "gap": "Offline revocation-freshness behavior is not bounded.",
+      "recommendation": "Define cache lifetime and resubmit outage/reconnection test.",
+      "owner": "TCU Supplier Manager"
+    }
+  ],
+  "profile_outcomes": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "outcome_code": "PR-AC-01",
+      "framework_code": "NISTCSF2",
+      "component_code": "GWM",
+      "title": "Access permissions and authorizations are managed",
+      "current_state": "Unauthorized diagnostic programming is denied locally.",
+      "target_state": "Unauthorized attempts are denied, logged, centrally reported and correlated.",
+      "gap_level": "High",
+      "action": "Implement fleet alerting and shared event identifiers."
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "outcome_code": "DE-CM-01",
+      "framework_code": "NISTCSF2",
+      "component_code": "TCU/GWM",
+      "title": "Networks and services are monitored for adverse events",
+      "current_state": "Separate TCU and GWM events exist with low-confidence manual correlation.",
+      "target_state": "One high-confidence correlated incident is generated automatically.",
+      "gap_level": "High",
+      "action": "Create correlation rule and common telemetry schema."
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "outcome_code": "GV.SC-01",
+      "framework_code": "NISTCSF2",
+      "component_code": "APIM",
+      "title": "Cybersecurity supply-chain risk is managed",
+      "current_state": "SBOM and supplier attestation are available; provenance is incomplete.",
+      "target_state": "Complete SBOM, signed provenance and independent composition analysis for every release.",
+      "gap_level": "Medium",
+      "action": "Update supplier evidence requirements and release gate."
+    },
+    {
+      "id": 4,
+      "campaign_id": 1,
+      "outcome_code": "SUMS-CERT-01",
+      "framework_code": "UN156",
+      "component_code": "TCU",
+      "title": "Update authenticity and certificate status remain trustworthy",
+      "current_state": "Online validation works; cached sessions can outlive current revocation status.",
+      "target_state": "Offline cache lifetime and fail behavior are formally bounded and tested.",
+      "gap_level": "High",
+      "action": "Define policy and retest extended outage behavior."
+    }
+  ],
+  "audit_questions": [
+    {
+      "id": 1,
+      "campaign_id": 1,
+      "category": "Scope",
+      "question": "What exactly is inside and outside this assessment campaign, and which software versions were assessed?",
+      "expected_points": "Name APIM 8.4.2, GWM 6.4.0, TCU 5.2.1; describe production-equivalent bench; state that protected ECUs and real OEM processes are context, not assessed implementation.",
+      "difficulty": "Foundation"
+    },
+    {
+      "id": 2,
+      "campaign_id": 1,
+      "category": "Applicability",
+      "question": "Why is the GWM diagnostic-isolation requirement applicable to this campaign?",
+      "expected_points": "TCU and APIM are exposed domains; both can reach the GWM; unauthorized DoIP/UDS movement could affect protected routes; applicability ties architecture and TARA risk to the requirement.",
+      "difficulty": "Foundation"
+    },
+    {
+      "id": 3,
+      "campaign_id": 1,
+      "category": "Evidence",
+      "question": "Why is one denied RequestDownload log not enough to declare the requirement fully met?",
+      "expected_points": "The full requirement includes prevention, local logging, fleet reporting, scope/version evidence and repeatable testing. One event is relevant but incomplete and may not prove operating effectiveness.",
+      "difficulty": "Intermediate"
+    },
+    {
+      "id": 4,
+      "campaign_id": 1,
+      "category": "Control effectiveness",
+      "question": "Explain the difference between design effectiveness, implementation and operating effectiveness for CTRL-GWM-001.",
+      "expected_points": "Design: would source-aware policy satisfy the requirement; implementation: policy exists in GWM 6.4.0; operating effectiveness: representative tests show it consistently denies, logs and reports.",
+      "difficulty": "Intermediate"
+    },
+    {
+      "id": 5,
+      "campaign_id": 1,
+      "category": "Residual risk",
+      "question": "Who can accept the remaining risk, and what evidence would you require before closure?",
+      "expected_points": "Authorized risk owner/approver, not AI or assessor alone; corrective action completion evidence; end-to-end retest; centralized alert; correlation; no regression in deny behavior.",
+      "difficulty": "Advanced"
+    },
+    {
+      "id": 6,
+      "campaign_id": 1,
+      "category": "Cross-framework mapping",
+      "question": "Does mapping CTRL-GWM-001 to several sources prove compliance with all of them?",
+      "expected_points": "No. A mapping shows a relationship, not conformance. Each source has scope, process and evidence expectations. Organizational obligations cannot be proven solely by one technical test.",
+      "difficulty": "Advanced"
+    }
+  ],
+  "software_releases": [
+    {
+      "id": 1,
+      "release_code": "REL-TCU-52",
+      "component_code": "TCU",
+      "version": "5.2.0",
+      "baseline_code": "BASE-2026-06-APPROVED",
+      "release_date": "2026-06-15",
+      "supplier": "Synthetic Telematics Supplier",
+      "status": "Approved baseline",
+      "notes": "Current approved TCU production-equivalent baseline."
+    },
+    {
+      "id": 2,
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "version": "5.3.0",
+      "baseline_code": "BASE-2026-07-CANDIDATE",
+      "release_date": "2026-07-08",
+      "supplier": "Synthetic Telematics Supplier",
+      "status": "Security gate review",
+      "notes": "Candidate release changes certificate validation, DoIP retry behavior, and telemetry event schema."
+    },
+    {
+      "id": 3,
+      "release_code": "REL-GWM-64",
+      "component_code": "GWM",
+      "version": "6.4.0",
+      "baseline_code": "BASE-2026-06-APPROVED",
+      "release_date": "2026-06-15",
+      "supplier": "Synthetic Gateway Team",
+      "status": "Approved baseline",
+      "notes": "Current gateway baseline interacting with both TCU releases."
+    },
+    {
+      "id": 4,
+      "release_code": "REL-APIM-31",
+      "component_code": "APIM",
+      "version": "3.1.0",
+      "baseline_code": "BASE-2026-06-APPROVED",
+      "release_date": "2026-06-15",
+      "supplier": "Synthetic Infotainment Supplier",
+      "status": "Approved baseline",
+      "notes": "Current APIM baseline used for supplier-assurance examples."
+    }
+  ],
+  "release_changes": [
+    {
+      "id": 1,
+      "release_code": "REL-TCU-53",
+      "change_code": "CHG-TCU-53-001",
+      "change_type": "Dependency update",
+      "title": "Certificate validation library update",
+      "description": "CertCore changes from 2.8.4 to 3.1.0, altering certificate-chain, revocation-cache, and failure-handling behavior.",
+      "affected_interfaces": "Cellular mTLS; OEM cloud identity service",
+      "affected_controls": "CTRL-TCU-002",
+      "affected_tara": "TARA-TCU-002",
+      "affected_requirements": "REQ-27001-CRYPTO; REQ-R155-RISK; REQ-R156-UPD",
+      "cybersecurity_impact": "Prior revocation and degraded-connectivity test evidence cannot be reused without regression testing.",
+      "requires_retest": "Yes"
+    },
+    {
+      "id": 2,
+      "release_code": "REL-TCU-53",
+      "change_code": "CHG-TCU-53-002",
+      "change_type": "Network behavior",
+      "title": "DoIP retry and route-selection change",
+      "description": "The TCU now retries DoIP discovery after a route denial and adds a fallback target selection path.",
+      "affected_interfaces": "TCU \u2192 GWM Automotive Ethernet / DoIP",
+      "affected_controls": "CTRL-GWM-001; CTRL-GWM-003",
+      "affected_tara": "TARA-TCU-001",
+      "affected_requirements": "REQ-OEM-GWM; REQ-R155-RISK; REQ-NIST-PR",
+      "cybersecurity_impact": "GWM isolation must be retested with the new source behavior even though GWM software is unchanged.",
+      "requires_retest": "Yes"
+    },
+    {
+      "id": 3,
+      "release_code": "REL-TCU-53",
+      "change_code": "CHG-TCU-53-003",
+      "change_type": "Telemetry schema",
+      "title": "Vehicle security event identifier added",
+      "description": "TCU telemetry adds a security_event_id field, but the GWM-to-fleet mapping has not been updated to consume the field.",
+      "affected_interfaces": "TCU/GWM logs \u2192 fleet monitoring",
+      "affected_controls": "CTRL-LOG-001",
+      "affected_tara": "TARA-TCU-001",
+      "affected_requirements": "REQ-OEM-CORR; REQ-R155-MON; REQ-NIST-DE; REQ-27001-LOG",
+      "cybersecurity_impact": "The change creates an opportunity to close the correlation gap, but end-to-end validation remains required.",
+      "requires_retest": "Yes"
+    }
+  ],
+  "evidence_lifecycle": [
+    {
+      "id": 1,
+      "evidence_code": "EVD-TCU-002",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "valid_for_version": "5.2.0",
+      "review_due": "2026-07-02",
+      "status": "Stale",
+      "stale_reason": "Certificate validation library changed in 5.3.0.",
+      "superseded_by": "EVD-TCU-003",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 2,
+      "evidence_code": "EVD-TCU-001",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "valid_for_version": "5.2.0",
+      "review_due": "2026-07-02",
+      "status": "Stale",
+      "stale_reason": "TCU process and DoIP behavior changed.",
+      "superseded_by": "EVD-TCU-004",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 3,
+      "evidence_code": "EVD-GWM-001",
+      "release_code": "REL-TCU-53",
+      "component_code": "GWM",
+      "valid_for_version": "GWM 6.4 with TCU 5.2",
+      "review_due": "2026-07-02",
+      "status": "Retest required",
+      "stale_reason": "Interacting TCU source behavior changed; previous GWM result does not cover retries and fallback routing.",
+      "superseded_by": "EVD-TCU-004",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 4,
+      "evidence_code": "EVD-GWM-002",
+      "release_code": "REL-TCU-53",
+      "component_code": "GWM",
+      "valid_for_version": "6.4.0",
+      "review_due": "2026-12-31",
+      "status": "Current",
+      "stale_reason": "No affected policy-integrity behavior identified.",
+      "superseded_by": "",
+      "required_for_gate": "No"
+    },
+    {
+      "id": 5,
+      "evidence_code": "EVD-LOG-001",
+      "release_code": "REL-TCU-53",
+      "component_code": "GWM",
+      "valid_for_version": "TCU 5.2 / GWM 6.4",
+      "review_due": "2026-07-02",
+      "status": "Gap open",
+      "stale_reason": "New TCU event field is not yet mapped through the GWM/fleet pipeline.",
+      "superseded_by": "EVD-DET-001",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 6,
+      "evidence_code": "EVD-TCU-003",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "valid_for_version": "5.3.0",
+      "review_due": "2026-07-07",
+      "status": "Pending",
+      "stale_reason": "New certificate regression evidence requested but not approved.",
+      "superseded_by": "",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 7,
+      "evidence_code": "EVD-TCU-004",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU/GWM",
+      "valid_for_version": "TCU 5.3 / GWM 6.4",
+      "review_due": "2026-07-07",
+      "status": "Pending",
+      "stale_reason": "End-to-end DoIP/UDS regression test not yet approved.",
+      "superseded_by": "",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 8,
+      "evidence_code": "EVD-SBOM-001",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "valid_for_version": "5.3.0",
+      "review_due": "2026-10-01",
+      "status": "Current with finding",
+      "stale_reason": "SBOM is current but identifies an unresolved high-severity library vulnerability.",
+      "superseded_by": "",
+      "required_for_gate": "Yes"
+    },
+    {
+      "id": 9,
+      "evidence_code": "EVD-DET-001",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU/GWM",
+      "valid_for_version": "TCU 5.3 / GWM 6.4",
+      "review_due": "2026-07-07",
+      "status": "Pending",
+      "stale_reason": "Correlation rule validation has not been completed.",
+      "superseded_by": "",
+      "required_for_gate": "Yes"
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": 1,
+      "vuln_code": "CVE-SYNTH-2026-0421",
+      "release_code": "REL-TCU-53",
+      "component_code": "TCU",
+      "affected_component": "CertCore",
+      "affected_versions": "3.1.0",
+      "severity": "High",
+      "cvss": 8.1,
+      "reachability": "Conditional \u2014 reachable during mTLS certificate parsing",
+      "exploitability": "Needs vehicle-context validation",
+      "status": "Open",
+      "linked_tara": "TARA-TCU-002",
+      "linked_control": "CTRL-TCU-002",
+      "remediation": "Update to CertCore 3.1.1 or apply vendor mitigation; repeat online/offline revocation and malformed-chain tests.",
+      "due_date": "2026-07-06"
+    },
+    {
+      "id": 2,
+      "vuln_code": "CVE-SYNTH-2025-1170",
+      "release_code": "REL-TCU-52",
+      "component_code": "TCU",
+      "affected_component": "NetCodec",
+      "affected_versions": "1.4.x",
+      "severity": "Medium",
+      "cvss": 6.4,
+      "reachability": "Reachable through cellular parser",
+      "exploitability": "Mitigated by input bounds and service isolation",
+      "status": "Remediated",
+      "linked_tara": "TARA-TCU-001",
+      "linked_control": "CTRL-TCU-001",
+      "remediation": "Removed in TCU 5.3 dependency refresh.",
+      "due_date": "2026-06-30"
+    }
+  ],
+  "sbom_components": [
+    {
+      "id": 1,
+      "release_code": "REL-TCU-52",
+      "component_name": "CertCore",
+      "version": "2.8.4",
+      "supplier": "Synthetic Crypto Vendor",
+      "purl": "pkg:generic/certcore@2.8.4",
+      "license": "Apache-2.0",
+      "known_vulnerability": "None open",
+      "status": "Approved"
+    },
+    {
+      "id": 2,
+      "release_code": "REL-TCU-52",
+      "component_name": "DoIPStack",
+      "version": "4.0.2",
+      "supplier": "Synthetic Network Vendor",
+      "purl": "pkg:generic/doipstack@4.0.2",
+      "license": "Proprietary",
+      "known_vulnerability": "None open",
+      "status": "Approved"
+    },
+    {
+      "id": 3,
+      "release_code": "REL-TCU-52",
+      "component_name": "EventSDK",
+      "version": "1.7.0",
+      "supplier": "Synthetic OEM",
+      "purl": "pkg:generic/eventsdk@1.7.0",
+      "license": "Internal",
+      "known_vulnerability": "None open",
+      "status": "Approved"
+    },
+    {
+      "id": 4,
+      "release_code": "REL-TCU-53",
+      "component_name": "CertCore",
+      "version": "3.1.0",
+      "supplier": "Synthetic Crypto Vendor",
+      "purl": "pkg:generic/certcore@3.1.0",
+      "license": "Apache-2.0",
+      "known_vulnerability": "CVE-SYNTH-2026-0421",
+      "status": "Hold"
+    },
+    {
+      "id": 5,
+      "release_code": "REL-TCU-53",
+      "component_name": "DoIPStack",
+      "version": "4.2.0",
+      "supplier": "Synthetic Network Vendor",
+      "purl": "pkg:generic/doipstack@4.2.0",
+      "license": "Proprietary",
+      "known_vulnerability": "None open",
+      "status": "Retest required"
+    },
+    {
+      "id": 6,
+      "release_code": "REL-TCU-53",
+      "component_name": "EventSDK",
+      "version": "1.8.0",
+      "supplier": "Synthetic OEM",
+      "purl": "pkg:generic/eventsdk@1.8.0",
+      "license": "Internal",
+      "known_vulnerability": "None open",
+      "status": "Integration validation required"
+    }
+  ],
+  "change_impacts": [
+    {
+      "id": 1,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-001",
+      "impact_type": "TARA",
+      "target_code": "TARA-TCU-002",
+      "target_title": "Revoked vehicle identity remains usable",
+      "impact_reason": "Certificate validation and cache behavior changed.",
+      "action": "Reassess feasibility and repeat certificate lifecycle tests.",
+      "status": "Open"
+    },
+    {
+      "id": 2,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-001",
+      "impact_type": "Evidence",
+      "target_code": "EVD-TCU-002",
+      "target_title": "Certificate revocation test",
+      "impact_reason": "Evidence was produced against CertCore 2.8.4.",
+      "action": "Replace with EVD-TCU-003 for 5.3.0.",
+      "status": "Stale"
+    },
+    {
+      "id": 3,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-002",
+      "impact_type": "Control",
+      "target_code": "CTRL-GWM-001",
+      "target_title": "Diagnostic service authorization",
+      "impact_reason": "New DoIP retries and fallback selection exercise gateway policy differently.",
+      "action": "Run source-aware 0x27/0x34 regression tests.",
+      "status": "Retest required"
+    },
+    {
+      "id": 4,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-002",
+      "impact_type": "Evidence",
+      "target_code": "EVD-GWM-001",
+      "target_title": "UDS enforcement log",
+      "impact_reason": "Prior test did not cover the new TCU retry behavior.",
+      "action": "Replace with end-to-end EVD-TCU-004.",
+      "status": "Retest required"
+    },
+    {
+      "id": 5,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-003",
+      "impact_type": "Detection",
+      "target_code": "DET-TCU-GWM-001",
+      "target_title": "Unexpected DoIP programming sequence",
+      "impact_reason": "New event identifier can improve correlation but the downstream mapping is incomplete.",
+      "action": "Update rule mapping and validate one correlated incident.",
+      "status": "Open"
+    },
+    {
+      "id": 6,
+      "release_code": "REL-TCU-53",
+      "source_change_code": "CHG-TCU-53-003",
+      "impact_type": "Cybersecurity case",
+      "target_code": "CLAIM-MON-001",
+      "target_title": "Attack attempts are detected and correlated",
+      "impact_reason": "Claim remains only partially supported until end-to-end correlation is proven.",
+      "action": "Attach EVD-DET-001 after validation.",
+      "status": "Open"
+    }
+  ],
+  "detection_rules": [
+    {
+      "id": 1,
+      "rule_code": "DET-TCU-GWM-001",
+      "title": "Unexpected DoIP programming sequence",
+      "component_code": "TCU/GWM",
+      "behavior": "Externally exposed TCU initiates unscheduled DoIP followed by unauthorized UDS 0x27 or 0x34.",
+      "telemetry_sources": "TCU process events; DoIP connections; GWM source zone; UDS service; NRC; target route; fleet event ID",
+      "logic_summary": "Correlate TCU privilege transition + unexpected DoIP + GWM denial within 120 seconds using security_event_id.",
+      "severity": "High",
+      "validation_status": "Partially validated",
+      "last_tested": "2026-06-23",
+      "linked_tara": "TARA-TCU-001",
+      "response_playbook": "Block route; preserve logs; open fleet incident; identify software baseline; begin vulnerability triage."
+    },
+    {
+      "id": 2,
+      "rule_code": "DET-TCU-CERT-001",
+      "title": "Revoked or anomalous vehicle identity use",
+      "component_code": "TCU",
+      "behavior": "Revoked, expired, or malformed certificate is presented or a cached identity remains active beyond policy.",
+      "telemetry_sources": "mTLS result; revocation freshness; certificate fingerprint; cache age; connectivity state",
+      "logic_summary": "Alert on revoked identity acceptance, cache age beyond policy, or repeated malformed-chain failures.",
+      "severity": "High",
+      "validation_status": "Not tested for 5.3",
+      "last_tested": "2026-06-21",
+      "linked_tara": "TARA-TCU-002",
+      "response_playbook": "Terminate session; revoke cache; quarantine identity; investigate fleet exposure; request supplier analysis."
+    }
+  ],
+  "cybersecurity_claims": [
+    {
+      "id": 1,
+      "claim_code": "CLAIM-TOP-001",
+      "parent_claim_code": "",
+      "title": "APIM\u2013GWM\u2013TCU platform is acceptably secure for assessed use",
+      "claim_type": "Top-level",
+      "statement": "The scoped platform manages remote, infotainment, diagnostic, update, identity, and monitoring risks to an acceptable residual level for the approved baseline.",
+      "status": "Partially supported",
+      "owner": "Vehicle Cybersecurity Assurance",
+      "rationale": "Prevention controls are demonstrated, but release 5.3 has unresolved evidence, vulnerability, and correlation gaps."
+    },
+    {
+      "id": 2,
+      "claim_code": "CLAIM-DIAG-001",
+      "parent_claim_code": "CLAIM-TOP-001",
+      "title": "Unauthorized diagnostic programming is prevented",
+      "claim_type": "Supporting",
+      "statement": "TCU or APIM compromise does not permit unauthorized UDS programming through the GWM.",
+      "status": "Revalidation required",
+      "owner": "Gateway Cybersecurity",
+      "rationale": "GWM 6.4 blocked prior behavior, but TCU 5.3 changes retries and route selection."
+    },
+    {
+      "id": 3,
+      "claim_code": "CLAIM-ID-001",
+      "parent_claim_code": "CLAIM-TOP-001",
+      "title": "Vehicle identity lifecycle is enforced",
+      "claim_type": "Supporting",
+      "statement": "Invalid, expired, revoked, or malformed TCU identities are rejected within policy-defined limits.",
+      "status": "Unsupported for candidate release",
+      "owner": "Telematics Security",
+      "rationale": "New CertCore version has an open vulnerability and regression evidence is pending."
+    },
+    {
+      "id": 4,
+      "claim_code": "CLAIM-MON-001",
+      "parent_claim_code": "CLAIM-TOP-001",
+      "title": "Attack attempts are detected and correlated",
+      "claim_type": "Supporting",
+      "statement": "TCU and GWM events forming one attack path generate one actionable fleet incident.",
+      "status": "Partially supported",
+      "owner": "Vehicle Security Monitoring",
+      "rationale": "Local events exist, but shared-ID mapping and end-to-end correlation are not validated."
+    }
+  ],
+  "claim_evidence": [
+    {
+      "id": 1,
+      "claim_code": "CLAIM-DIAG-001",
+      "evidence_code": "EVD-GWM-001",
+      "support_type": "Historical support",
+      "notes": "Demonstrates denial for TCU 5.2 behavior only."
+    },
+    {
+      "id": 2,
+      "claim_code": "CLAIM-ID-001",
+      "evidence_code": "EVD-TCU-002",
+      "support_type": "Stale support",
+      "notes": "Valid only for CertCore 2.8.4 / TCU 5.2."
+    },
+    {
+      "id": 3,
+      "claim_code": "CLAIM-MON-001",
+      "evidence_code": "EVD-LOG-001",
+      "support_type": "Contradicting gap",
+      "notes": "Shows manual rather than automatic correlation."
+    }
+  ],
+  "release_gates": [
+    {
+      "id": 1,
+      "release_code": "REL-TCU-53",
+      "decision": "Additional evidence required",
+      "decision_status": "Blocked",
+      "blockers": "Open high vulnerability CVE-SYNTH-2026-0421; mandatory evidence EVD-TCU-003/EVD-TCU-004/EVD-DET-001 pending; diagnostic and monitoring claims not fully supported.",
+      "conditions": "Resolve or formally mitigate vulnerability; approve certificate regression; approve DoIP/UDS regression; validate one correlated fleet incident.",
+      "residual_risk": "High",
+      "approver": "Vehicle Cybersecurity Release Authority",
+      "approved_at": "",
+      "notes": "AI may calculate posture but cannot approve release.",
+      "created_at": "2026-07-01T12:00:00Z"
+    }
+  ],
+  "ingested_artifacts": []
+}

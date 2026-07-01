@@ -1,0 +1,13 @@
+SYNTHETIC EVIDENCE — TCU 5.3 CERTIFICATE REGRESSION
+Release: REL-TCU-53
+TCU version: 5.3.0
+CertCore: 3.1.0
+Status: TEST EXECUTION PENDING SECURITY APPROVAL
+Required cases:
+- valid certificate accepted
+- expired certificate rejected
+- untrusted chain rejected
+- revoked certificate rejected online
+- revoked certificate rejected during degraded connectivity
+- malformed chain handled without process exception
+Known blocker: CVE-SYNTH-2026-0421 requires disposition before final approval.
