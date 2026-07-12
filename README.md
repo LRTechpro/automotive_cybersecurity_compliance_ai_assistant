@@ -1,6 +1,6 @@
 # AutoCyber Traceability & Continuous Assurance Workbench
 
-A local, portfolio-grade automotive cybersecurity engineering and compliance-assurance prototype focused on a **synthetic APIM, GWM, and TCU architecture**.
+Automotive cybersecurity assurance prototype connecting synthetic TARA, requirements, controls, evidence, SBOM findings, detections, and release-gate decisions across a synthetic APIM, GWM, and TCU architecture.
 
 Version 3 demonstrates how an engineer maintains assurance when software, dependencies, interfaces, vulnerabilities, evidence, detections, and release baselines change.
 
